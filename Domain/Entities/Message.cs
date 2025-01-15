@@ -26,3 +26,5 @@ namespace Domain.Entities
         public IReadOnlyCollection<Reaction> Reactions { get; private set; }
     }
 }
+
+

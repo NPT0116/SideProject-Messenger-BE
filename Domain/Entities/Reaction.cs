@@ -16,3 +16,5 @@ namespace Domain.Entities
         public Message Message { get; private set; }
     }
 }
+
+// Use case 

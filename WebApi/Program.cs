@@ -1,7 +1,6 @@
 
 using Application;
 using Infrastructure;
-using Presentation;
 using Scalar.AspNetCore;
 using Serilog;
 using WebApi.Middlewares;
@@ -17,7 +16,6 @@ builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddApplication();
-builder.Services.AddPresentation();
 
 
 // global exception handler

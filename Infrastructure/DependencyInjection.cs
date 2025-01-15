@@ -10,6 +10,7 @@ namespace Infrastructure
 {
     public static class DependencyInjection
     {
+        // Extension methods 
         public static IServiceCollection AddPersistence(
         this IServiceCollection services,
         IConfiguration configuration)
