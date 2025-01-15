@@ -25,7 +25,7 @@ namespace Application.Users.Queries.GetAllUsers
             // Map domain entities to 
             var userDtos = users.Select(user => new UserDto(
                 user.Id,
-                user.Name
+                user.FirstName
             )).ToList();
 
             return new GetAllUsersResponse(userDtos);
@@ -38,7 +38,7 @@ namespace Application.Users.Queries.GetAllUsers
             // Map domain entities to 
             var userDtos = users.Select(user => new UserDto(
                 user.Id,
-                user.Name
+                user.FirstName
             )).ToList();
 
             return Task.FromResult(new GetAllUsersResponse(userDtos));

@@ -9,8 +9,8 @@ namespace Infrastructure.Repositories
         {
             return new List<User>
             {
-                new User(1, "Nguyen Hong Quan"),
-                new User(2, "Nguyen Phuc Thanh")
+                new User(new Guid(), "Nguyen"," Hong Quan", "saddasdas"),
+                new User(new Guid(), "Nguyen","Phuc Thanh", "sadasdsds")
             };
         }
     }

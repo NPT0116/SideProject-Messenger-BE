@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities
+namespace Domain.Enums
 {
-    internal class Account
+    public enum MessageType
     {
+        Text,
+        Media
     }
 }

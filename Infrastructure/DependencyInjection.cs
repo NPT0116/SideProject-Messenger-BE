@@ -16,7 +16,7 @@ namespace Infrastructure
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options
-                    .UseNpgsql(configuration.GetConnectionString("ConnectionString")));
+                    .UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IApplicationDbContext>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
