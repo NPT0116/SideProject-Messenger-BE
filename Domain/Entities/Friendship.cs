@@ -9,7 +9,17 @@ namespace Domain.Entities
 {
     public class Friendship
     {
-        
+        public Friendship(
+            Guid id,
+            Guid initiatorId,
+            Guid receiverId)
+        {
+            Id = id;
+            InitiatorId = initiatorId;
+            ReceiverId = receiverId;
+            Status = FriendshipStatus.Pending;
+            CreatedAt = DateTime.UtcNow;
+        }
         public Guid Id { get; private set; }
         public Guid InitiatorId {  get; private set; }
         public Guid ReceiverId { get; private set; }

@@ -8,10 +8,19 @@ namespace Domain.Entities
 {
     public class Participant
     {
+        public Participant(
+            Guid id,
+            Guid userId,
+            Guid chatId)
+        {
+            Id = id;
+            UserId = userId;
+            ChatId = chatId;
+        }
         public Guid Id { get; private set; }
         public Guid UserId { get; private set; }
         public Guid ChatId { get; private set; }
-        public string NickName { get; private set; }
+        public string? NickName { get; private set; }
 
         // Navigation Property
         public User User { get; private set; }

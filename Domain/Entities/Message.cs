@@ -9,7 +9,23 @@ namespace Domain.Entities
 {
     public class Message
     {
+        public Message(
+            Guid id,
+            string content,
+            MessageType type,
+            Guid senderId,
+            Guid chatId)
+        {
+            Id = id;
+            Content = content;
+            Type = type;
+            SenderId = senderId;
+            ChatId = chatId;
+            SentAt = DateTime.UtcNow;
+            AttachmentId = null;
+        }
         public Guid Id { get; private set; }
+        public string Content { get; private set; }
         public MessageType Type { get; private set; }
         public DateTime SentAt { get; private set; }
         public bool IsRead { get; private set; }
@@ -17,7 +33,7 @@ namespace Domain.Entities
         public bool IsDeleted { get; private set; }
         public Guid SenderId { get; private set; }
         public Guid ChatId { get; private set; }
-        public Guid AttachmentId { get; private set; }
+        public Guid? AttachmentId { get; private set; }
 
         // Navigation Property
         public Chat Chat { get; private set; }
