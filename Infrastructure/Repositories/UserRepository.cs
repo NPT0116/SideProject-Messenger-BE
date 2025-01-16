@@ -5,13 +5,15 @@ namespace Infrastructure.Repositories
 {
     internal class UserRepository : IUserRepository
     {
+        private readonly ApplicationDbContext _context;
+        public UserRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
         public List<User> GetUsers()
         {
-            return new List<User>
-            {
-                new User(new Guid(), "Nguyen"," Hong Quan", "saddasdas"),
-                new User(new Guid(), "Nguyen","Phuc Thanh", "sadasdsds")
-            };
+            var users = _context.Users.ToList();
+            return users;
         }
     }
 }
