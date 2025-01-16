@@ -1,4 +1,4 @@
-name: build check 🚀
+name: Build and Test with Dockerfile
 
 on:
   workflow_dispatch:
@@ -8,19 +8,49 @@ on:
   pull_request:
     branches:
       - main
+
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
+
     steps:
       - name: 🛠️ Checkout Repository
         uses: actions/checkout@v4
+
       - name: ⚙️ Setup .NET 9 SDK
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.x
+
       - name: 📦 Restore Dependencies
-        run: dotnet restore backend.csproj
+        run: |
+          dotnet restore ./WebApi/WebApi.csproj
+
       - name: 🏗️ Build Project
-        run: dotnet build backend.csproj --no-restore
+        run: |
+          dotnet build ./WebApi/WebApi.csproj --no-restore --configuration Release
+
       - name: ✅ Run Tests
-        run: dotnet test ./backend.csproj --no-build --verbosity normal
+        run: |
+          dotnet test ./WebApi/WebApi.csproj --no-build --verbosity normal
+
+      - name: 📦 Build Docker Image
+        run: |
+          docker build \
+            --build-arg BUILD_CONFIGURATION=Release \
+            -t webapi:latest .
+
+      - name: 🚀 Run Docker Container for Validation
+        run: |
+          docker run --rm -d -p 8080:8080 --name webapi-test webapi:latest
+          sleep 10 # Allow time for container startup
+
+      - name: 🔎 Validate Service Availability
+        run: |
+          curl -f http://localhost:8080 || exit 1
+
+      - name: 🧹 Cleanup Docker Container
+        if: always()
+        run: |
+          docker stop webapi-test
+          docker rm webapi-test
