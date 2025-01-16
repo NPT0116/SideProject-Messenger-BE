@@ -1,39 +1,54 @@
 ﻿
 using Application.Data;
 using Domain.Repositories;
+using Infrastructure.Identity;
 using Infrastructure.Repositories;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure
 {
-    public static class DependencyInjection
+public static class DependencyInjection
     {
-        // Extension methods 
         public static IServiceCollection AddPersistence(
-        this IServiceCollection services,
-        IConfiguration configuration)
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options
-                    .UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IApplicationDbContext>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
+
+            // Add identity
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
             services.AddScoped<IUnitOfWork>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
 
             services.AddScoped<IUserRepository, UserRepository>();
 
-            //services.AddScoped<IOrderRepository, OrderRepository>();
-
-            //services.AddScoped<IOrderSummaryRepository, OrderSummariesRepository>();
-
-            //services.AddScoped<IProductRepository, ProductRepository>();
-
             return services;
+        }
+        public static async Task SeedRoles(IServiceProvider serviceProvider)
+        {
+            using var scope = serviceProvider.CreateScope();
+            var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // Danh sách các vai trò mặc định
+            string[] roles = { "Admin", "User" };
+
+            foreach (var role in roles)
+            {
+                if (!await roleManager.RoleExistsAsync(role))
+                {
+                    await roleManager.CreateAsync(new IdentityRole(role));
+                }
+            }
         }
     }
 }

@@ -30,6 +30,10 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
     loggerConfiguration.WriteTo.Console();
     loggerConfiguration.ReadFrom.Configuration(context.Configuration);
 });
+
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+Log.Information("Using connection string: {ConnectionString}", connectionString);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())

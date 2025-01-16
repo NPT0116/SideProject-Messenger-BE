@@ -1,10 +1,10 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
-using Microsoft.AspNet.Identity;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Infrastructure.Seed
@@ -16,38 +16,36 @@ namespace Infrastructure.Seed
             // Seed Users
             if (!context.Users.Any())
             {
-                var passwordHasher = new PasswordHasher();
+                var passwordHasher = new PasswordHasher<ApplicationUser>();
                 string defaultPassword = "123456";
-                string hashedPassword = passwordHasher.HashPassword(defaultPassword);
                 var users = Enumerable.Range(1, 5000).Select(i =>
                 {
-                    var user = new User(
+                    var user = new ApplicationUser(
                         Guid.NewGuid(),
                         $"FirstName{i}",
                         $"LastName{i}",
-                        hashedPassword
+                        passwordHasher.HashPassword(null, defaultPassword)
                     );
                     return user;
                 }).ToList();
-
 
                 await context.Users.AddRangeAsync(users);
                 await context.SaveChangesAsync();
             }
 
             // Seed Attachments
-            //if (!context.Attachments.Any())
-            //{
-            //    var attachments = Enumerable.Range(1, 5000).Select(i => new Attachment
-            //    {
-            //        Id = Guid.NewGuid(),
-            //        Type = (FileType)(i % 3), // Assume 3 FileTypes
-            //        FilePath = $"/uploads/file_{i}.png",
-            //        UploadedAt = DataGenerator.RandomDate(DateTime.UtcNow.AddYears(-1), DateTime.UtcNow)
-            //    }).ToList();
+            // if (!context.Attachments.Any())
+            // {
+            //     var attachments = Enumerable.Range(1, 5000).Select(i => new Attachment
+            //     {
+            //         Id = Guid.NewGuid(),
+            //         Type = (FileType)(i % 3), // Assume 3 FileTypes
+            //         FilePath = $"/uploads/file_{i}.png",
+            //         UploadedAt = DataGenerator.RandomDate(DateTime.UtcNow.AddYears(-1), DateTime.UtcNow)
+            //     }).ToList();
 
-            //    await context.Attachments.AddRangeAsync(attachments);
-            //}
+            //     await context.Attachments.AddRangeAsync(attachments);
+            // }
 
             // Seed Chats
             if (!context.Chats.Any())
@@ -68,8 +66,10 @@ namespace Infrastructure.Seed
                 var friendships = Enumerable.Range(1, 5000)
                         .Select(i => new Friendship(
                             Guid.NewGuid(), 
-                            userIds[i % userIds.Count], 
-                            userIds[(i + 1) % userIds.Count]))
+                            Guid.Parse(
+                            userIds[i % userIds.Count]), 
+                            Guid.Parse(
+                            userIds[(i + 1) % userIds.Count])))
                         .ToList();
 
                 await context.Friendships.AddRangeAsync(friendships);
@@ -85,7 +85,8 @@ namespace Infrastructure.Seed
                     .Range(1, 5000)
                     .Select(i => new Participant(
                         Guid.NewGuid(),
-                        userIds[i % userIds.Count],
+                        Guid.Parse(
+                        userIds[i % userIds.Count]),
                         chatIds[i % chatIds.Count])).ToList();
 
                 await context.Participants.AddRangeAsync(participants);
@@ -111,9 +112,6 @@ namespace Infrastructure.Seed
                 await context.Messages.AddRangeAsync(messages);
                 await context.SaveChangesAsync();
             }
-
-            // Seed Participants
-            
 
             // Seed Reactions
             if (!context.Reactions.Any())
