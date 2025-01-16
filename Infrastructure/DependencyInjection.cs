@@ -10,34 +10,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Infrastructure
 {
-    public static class DependencyInjection
+public static class DependencyInjection
     {
-        // Extension methods 
         public static IServiceCollection AddPersistence(
-        this IServiceCollection services,
-        IConfiguration configuration)
+            this IServiceCollection services,
+            IConfiguration configuration)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options
-                    .UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
             services.AddScoped<IApplicationDbContext>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
-                // add identity
+
+            // Add identity
             services.AddIdentity<ApplicationUser, IdentityRole>()
-                        .AddEntityFrameworkStores<ApplicationDbContext>()
-                        .AddDefaultTokenProviders();
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
 
             services.AddScoped<IUnitOfWork>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
 
             services.AddScoped<IUserRepository, UserRepository>();
-
-            //services.AddScoped<IOrderRepository, OrderRepository>();
-
-            //services.AddScoped<IOrderSummaryRepository, OrderSummariesRepository>();
-
-            //services.AddScoped<IProductRepository, ProductRepository>();
 
             return services;
         }
