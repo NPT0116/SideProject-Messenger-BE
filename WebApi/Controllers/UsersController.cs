@@ -1,4 +1,5 @@
 ﻿using Application.Users.Queries.GetAllUsers;
+using Application.Users.Queries.GetAUser;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,15 @@ namespace WebApi.Controllers
 
             // Return the response
             return Ok(response.Users);
+        }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetAUser(Guid id)
+        {
+            // Send the query to MediatR
+            var response = await _mediator.Send(new GetAUserQuery(id));
+
+            // Return the response
+            return Ok(response);
         }
     }
 }
