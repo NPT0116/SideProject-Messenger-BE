@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
-using Microsoft.AspNet.Identity;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,16 +17,15 @@ namespace Infrastructure.Seed
             // Seed Users
             if (!context.Users.Any())
             {
-                var passwordHasher = new PasswordHasher();
+                var passwordHasher = new PasswordHasher<ApplicationUser>();
                 string defaultPassword = "123456";
-                string hashedPassword = passwordHasher.HashPassword(defaultPassword);
                 var users = Enumerable.Range(1, 5000).Select(i =>
                 {
-                    var user = new User(
+                    var user = new ApplicationUser(
                         Guid.NewGuid(),
                         $"FirstName{i}",
                         $"LastName{i}",
-                        hashedPassword
+                        passwordHasher.HashPassword(null, defaultPassword)
                     );
                     return user;
                 }).ToList();

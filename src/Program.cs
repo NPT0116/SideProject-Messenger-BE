@@ -33,6 +33,7 @@ builder.Services.AddProblemDetails();
     });
 builder.Services.AddValidatorsFromAssemblyContaining<UserRegistorRequestValidator>();
 var app = builder.Build();
+await DependencyInjection.SeedRoles.(app.Services);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
