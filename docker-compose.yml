@@ -1,11 +1,12 @@
 version: "3.8"
 
 services:
-  be:
+  webapi:
     build:
       context: .
       dockerfile: Dockerfile
     container_name: be
+    platform: linux/amd64
     ports:
       - "5001:5001"
     environment:
@@ -15,14 +16,14 @@ services:
       - db
 
   db:
-    image: postgres:15
-    container_name: messengerdb
+    image: postgres:latest
+    container_name: messengerdb_container
     environment:
-      POSTGRES_USER: admin
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: appMessenger
+      POSTGRES_DB: messengerdb
     ports:
-      - "5432:5432"
+      - "5431:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
