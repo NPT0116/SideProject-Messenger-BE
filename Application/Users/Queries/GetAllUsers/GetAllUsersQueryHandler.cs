@@ -23,7 +23,8 @@ namespace Application.Users.Queries.GetAllUsers
             // Map domain entities to 
             var userDtos = users.Select(user => new UserDto(
                 user.Id,
-                user.FirstName
+                user.FirstName,
+                user.LastName
             )).ToList();
 
             return Task.FromResult(new GetAllUsersResponse(userDtos));

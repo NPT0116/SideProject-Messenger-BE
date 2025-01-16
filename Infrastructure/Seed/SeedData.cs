@@ -21,11 +21,14 @@ namespace Infrastructure.Seed
                 var users = Enumerable.Range(1, 5000).Select(i =>
                 {
                     var user = new ApplicationUser(
+                       
                         Guid.NewGuid(),
                         $"FirstName{i}",
-                        $"LastName{i}",
-                        passwordHasher.HashPassword(null, defaultPassword)
-                    );
+                        $"LastName{i}"
+                    ){
+                        UserName = $"user{i}",
+                        PasswordHash = passwordHasher.HashPassword(null, defaultPassword)
+                    };
                     return user;
                 }).ToList();
 

@@ -7,12 +7,11 @@ namespace Infrastructure.Identity
     {
         public ApplicationUser() { }
 
-        public ApplicationUser(Guid id, string firstName, string lastName, string passwordHash)
+        public ApplicationUser(Guid id, string firstName, string lastName)
         {
             Id = id.ToString();
             FirstName = firstName;
             LastName = lastName;
-            PasswordHash = passwordHash;
         }
 
         public string FirstName { get; private set; }

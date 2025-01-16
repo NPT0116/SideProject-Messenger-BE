@@ -23,9 +23,16 @@ public static class DependencyInjection
                 sp.GetRequiredService<ApplicationDbContext>());
 
             // Add identity
-            services.AddIdentity<ApplicationUser, IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+   services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequireLowercase = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6; // Set your desired minimum length
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
             services.AddScoped<IUnitOfWork>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());

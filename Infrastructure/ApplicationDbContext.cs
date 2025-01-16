@@ -17,9 +17,17 @@ namespace Infrastructure
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder); // Ensure the base method is called
-
+            base.OnModelCreating(modelBuilder); // Ensure the base method is called\
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+
+                modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserName).IsRequired();
+                entity.Property(e => e.FirstName).IsRequired();
+                entity.Property(e => e.LastName).IsRequired();
+                entity.Property(e => e.PasswordHash).IsRequired();
+            });
         }
 
         public DbSet<ApplicationUser> Users { get; set; }

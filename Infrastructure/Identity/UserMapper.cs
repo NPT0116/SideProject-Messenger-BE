@@ -12,6 +12,7 @@ public static class UserMapper
     if (applicationUser == null) return null;
 
     var domainUser = new User(
+        applicationUser.UserName,
         applicationUser.FirstName,
         applicationUser.LastName,
         applicationUser.PasswordHash)
@@ -32,9 +33,11 @@ public static class UserMapper
     return new ApplicationUser(
         domainUser.Id,
         domainUser.FirstName, 
-        domainUser.LastName, 
-        domainUser.PasswordHash)
+        domainUser.LastName
+        )
     {
+        PasswordHash = domainUser.PasswordHash,
+        UserName = domainUser.UserName,
         LastSeen = domainUser.LastSeen,
         IsOnline = domainUser.IsOnline,
         ProfilePictureId = domainUser.ProfilePictureId
