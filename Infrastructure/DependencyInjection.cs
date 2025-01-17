@@ -38,6 +38,7 @@ public static class DependencyInjection
                 sp.GetRequiredService<ApplicationDbContext>());
 
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 
             return services;
         }
