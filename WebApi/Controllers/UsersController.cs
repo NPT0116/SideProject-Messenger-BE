@@ -38,7 +38,7 @@ namespace WebApi.Controllers
             return Ok(response);
         }
     
-    [Authorize(AuthenticationSchemes = "Bearer")]
+        [Authorize(AuthenticationSchemes = "Bearer")]
         [HttpGet("me")]
         public async Task<IActionResult> GetMe()
         {
