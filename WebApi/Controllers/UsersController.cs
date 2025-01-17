@@ -1,8 +1,11 @@
 ﻿using Application.Users.Queries.GetAllUsers;
 using Application.Users.Queries.GetAUser;
+using Application.Users.Queries.GetMeUser;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
 
 namespace WebApi.Controllers
 {
@@ -30,6 +33,20 @@ namespace WebApi.Controllers
         {
             // Send the query to MediatR
             var response = await _mediator.Send(new GetAUserQuery(id));
+
+            // Return the response
+            return Ok(response);
+        }
+    
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetMe()
+        {
+            // Get the current user id
+            var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            // Log.Information(token);
+            // Send the query to MediatR
+            var response = await _mediator.Send(new GetMeUserCommand(token));
 
             // Return the response
             return Ok(response);

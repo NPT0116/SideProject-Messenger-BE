@@ -1,4 +1,5 @@
 // filepath: /C:/Users/Admin/Desktop/web_messenger/WebApi/Program.cs
+using System.Text;
 using Application;
 using FluentValidation.AspNetCore;
 using Infrastructure;
@@ -6,6 +7,8 @@ using Infrastructure.Seed;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -16,9 +19,43 @@ Log.Logger = new LoggerConfiguration()
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Sushi Restaurant API",
+        Version = "v1",
+        Description = "API for Sushi Restaurant Management System"
+    });
+
+    // Adding Authentication for Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] { }
+        }
+    });
+});
+
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddApplication();
 
@@ -33,6 +70,7 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
     loggerConfiguration.ReadFrom.Configuration(context.Configuration);
 });
 
+builder.Services.AddAuthorization();
 // Add this section to conditionally use appsettings.json for Local environment
 if (builder.Environment.IsEnvironment("Local"))
 {
@@ -55,7 +93,7 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
 {
     app.MapOpenApi();
-app.UseSwagger();
+    app.UseSwagger();
     app.UseSwaggerUI();
     app.MapScalarApiReference(options => {
         options.WithTitle("Messenger API")
@@ -63,8 +101,9 @@ app.UseSwagger();
     });
 }
 
-//app.MapGet("/", () => { throw new ProductNotFoundException(Guid.NewGuid()); });
 app.UseHttpsRedirection();
+app.UseAuthentication(); // Add authentication middleware
+app.UseAuthorization(); 
 app.UseExceptionHandler();
 app.MapControllers();
 
