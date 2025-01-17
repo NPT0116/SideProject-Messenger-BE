@@ -45,7 +45,7 @@ namespace Infrastructure
                 services.AddAuthentication(options => {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;})
+               })
                 .AddJwtBearer(options =>
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
@@ -61,10 +61,7 @@ namespace Infrastructure
                 });
 
             services.AddAuthorization();    
-            services.AddControllers(opt => {
-            var policy = new AuthorizationPolicyBuilder("Bearer").RequireAuthenticatedUser().Build();
-            opt.Filters.Add(new AuthorizeFilter(policy));
-        });
+      
             services.AddScoped<IUnitOfWork>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
 

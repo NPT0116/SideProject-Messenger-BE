@@ -27,5 +27,7 @@ namespace Domain.Entities
         public DateTime CreatedAt { get; private set; }
 
         // Navigation Property
+            public User Initiator { get; private set; } = null!;
+        public User Receiver { get; private set; } = null!;
     }
 }
