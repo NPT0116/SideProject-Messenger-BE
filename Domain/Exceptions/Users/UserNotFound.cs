@@ -9,4 +9,9 @@ public class UserNotFound : BaseException
         : base($"User with id {id} not found", HttpStatusCode.NotFound)
     {
     }
+
+        public UserNotFound(string UserName)
+        : base($"User with UserName:  {UserName} not found", HttpStatusCode.NotFound)
+    {
+    }
 }

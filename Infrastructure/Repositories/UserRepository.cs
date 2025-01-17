@@ -17,7 +17,13 @@ namespace Infrastructure.Repositories
             _userManager = userManager;
         }
 
-    public async Task<User> CreateUserAsync(User _user)
+        public async Task<bool> checkPasswordAsync(User user, string password)
+        {
+            var applicationUser = UserMapper.ToApplicationUser(user);
+            return await _userManager.CheckPasswordAsync(applicationUser, password);
+        }
+
+        public async Task<User> CreateUserAsync(User _user)
     {
         var user = new ApplicationUser(
             

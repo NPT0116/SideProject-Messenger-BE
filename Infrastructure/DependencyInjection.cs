@@ -1,16 +1,23 @@
-﻿
+﻿// filepath: /c:/Users/Admin/Desktop/web_messenger/Infrastructure/DependencyInjection.cs
+using System.Text;
 using Application.Data;
+using Domain;
 using Domain.Repositories;
 using Infrastructure.Identity;
 using Infrastructure.Repositories;
+using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Infrastructure
 {
-public static class DependencyInjection
+    public static class DependencyInjection
     {
         public static IServiceCollection AddPersistence(
             this IServiceCollection services,
@@ -23,24 +30,52 @@ public static class DependencyInjection
                 sp.GetRequiredService<ApplicationDbContext>());
 
             // Add identity
-   services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-{
-    options.Password.RequireDigit = false;
-    options.Password.RequireLowercase = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 6; // Set your desired minimum length
-})
-.AddEntityFrameworkStores<ApplicationDbContext>()
-.AddDefaultTokenProviders();
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequiredLength = 6; // Set your desired minimum length
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
+            // jwt
+                services.AddAuthentication(options => {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;})
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = configuration["Jwt:Issuer"],
+                        ValidAudience = configuration["Jwt:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                    };
+                });
+
+            services.AddAuthorization();    
+            services.AddControllers(opt => {
+            var policy = new AuthorizationPolicyBuilder("Bearer").RequireAuthenticatedUser().Build();
+            opt.Filters.Add(new AuthorizeFilter(policy));
+        });
             services.AddScoped<IUnitOfWork>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
 
             services.AddScoped<IUserRepository, UserRepository>();
 
+            // Register TokenService
+            services.AddScoped<ITokenService, TokenService>();
+
             return services;
         }
+
         public static async Task SeedRoles(IServiceProvider serviceProvider)
         {
             using var scope = serviceProvider.CreateScope();

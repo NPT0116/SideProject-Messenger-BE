@@ -15,17 +15,6 @@ namespace Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<Friendship> builder)
         {
             builder.HasKey(fr => fr.Id);
-
-            builder.HasOne(f => f.Initiator)
-                .WithMany(u => u.FriendshipsInitiated)
-                .HasForeignKey(f => f.InitiatorId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
-
-            // User2 relationship (Recipient)
-            builder.HasOne(f => f.Receiver)
-                .WithMany(u => u.FriendshipsReceived)
-                .HasForeignKey(f => f.ReceiverId)
-                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

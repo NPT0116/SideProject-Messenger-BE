@@ -1,6 +1,8 @@
 using Application.Dtos.Users;
+using Application.Features.Auth.Login;
 using Application.Features.Auth.Register;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
@@ -22,6 +24,11 @@ public class AuthController : ControllerBase
         var result = await _mediator.Send(new RegisterUserCommand (request ));
         return Ok(result);
     }
-
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginUserRequestDto request)
+    {
+        var result = await _mediator.Send(new LoginUserCommand(request));
+        return Ok(result);
+    }
 }
 
