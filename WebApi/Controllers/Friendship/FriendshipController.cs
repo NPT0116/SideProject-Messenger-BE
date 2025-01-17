@@ -28,8 +28,8 @@ namespace WebApi.Controllers.Friendship
 
         [HttpPost]
         public async Task<IActionResult> SendFriendshipInvitation(
-            [FromBody] Guid initiatorId, 
-            [FromBody] Guid receiverId)
+            [FromQuery] Guid initiatorId, 
+            [FromQuery] Guid receiverId)
         {
             var createFriendshipDto = new CreateFriendshipDto(initiatorId, receiverId);
             var result = await _mediator.Send(new SendFriendshipInvitationCommand(createFriendshipDto));

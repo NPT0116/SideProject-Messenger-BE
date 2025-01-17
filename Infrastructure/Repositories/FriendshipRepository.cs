@@ -26,7 +26,7 @@ namespace Infrastructure.Repositories
         public async Task CreateFriendship(Guid initiatorId, Guid receiverId)
         {
             var friendshipId = Guid.NewGuid();
-            var friendship = new Friendship(friendshipId, initiatorId, receiverId);
+            var friendship = new Friendship(friendshipId, initiatorId.ToString(), receiverId.ToString());
             _context.Friendships.Add(friendship);
             await _context.SaveChangesAsync();
         }
@@ -40,25 +40,30 @@ namespace Infrastructure.Repositories
             }        
 
             var friendsInitiated = _context.Friendships
-                .Where(f => f.InitiatorId == userId)
+                .Where(f => f.InitiatorId == userId.ToString())
                 .Join(
                     _context.Users,
                     friendship => friendship.ReceiverId,
-                    user => UserMapper.ToDomainUser(user).Id,
-                    (friendship, user) => UserMapper.ToDomainUser(user));
+                    user => user.Id,
+                    (friendship, user) => user);
 
             var friendsReceived = _context.Friendships
-                .Where(f => f.ReceiverId == userId)
+                .Where(f => f.ReceiverId == userId.ToString())
                 .Join(
                     _context.Users,
                     friendship => friendship.InitiatorId,
-                    user => UserMapper.ToDomainUser(user).Id,
-                    (friendship, user) => UserMapper.ToDomainUser(user));
+                    user => user.Id,
+                    (friendship, user) => user);
 
 
             var friends = await friendsInitiated.Union(friendsReceived).ToListAsync();
 
-            return friends;
+            return friends.Select(friend => new User(
+                Guid.Parse(friend.Id),
+                friend.UserName,
+                friend.FirstName,
+                friend.LastName,
+                friend.PasswordHash)).ToList();
         }
     }
 }
