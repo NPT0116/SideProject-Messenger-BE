@@ -15,6 +15,10 @@ namespace Infrastructure.Configurations
         {
             builder.HasKey(p => p.Id);
 
+            builder.HasOne(p => p.User)
+                .WithMany(u => u.Participants)
+                .HasForeignKey(p => p.UserId);
+
             builder.HasOne(p => p.Chat)
                 .WithMany(c => c.Participants)
                 .HasForeignKey(p => p.ChatId);

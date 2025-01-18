@@ -11,8 +11,8 @@ namespace Domain.Entities
     {
         public Friendship(
             Guid id,
-            string initiatorId,
-            string receiverId)
+            Guid initiatorId,
+            Guid receiverId)
         {
             Id = id;
             InitiatorId = initiatorId;
@@ -21,13 +21,13 @@ namespace Domain.Entities
             CreatedAt = DateTime.UtcNow;
         }
         public Guid Id { get; private set; }
-        public string InitiatorId {  get; private set; }
-        public string ReceiverId { get; private set; }
+        public Guid InitiatorId {  get; private set; }
+        public Guid ReceiverId { get; private set; }
         public FriendshipStatus Status { get; private set; }
         public DateTime CreatedAt { get; private set; }
 
         // Navigation Property
-        //     public User Initiator { get; private set; } = null!;
-        // public User Receiver { get; private set; } = null!;
+            public User Initiator { get; private set; } = null!;
+        public User Receiver { get; private set; } = null!;
     }
 }

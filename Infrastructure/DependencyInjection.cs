@@ -66,7 +66,6 @@ namespace Infrastructure
                 sp.GetRequiredService<ApplicationDbContext>());
 
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IFriendshipRepository, FriendshipRepository>();
 
             // Register TokenService
             services.AddScoped<ITokenService, TokenService>();
