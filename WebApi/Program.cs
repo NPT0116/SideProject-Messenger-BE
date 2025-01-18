@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
+using WebApi.Middlewares;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -105,6 +106,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization(); 
 app.UseExceptionHandler();
+app.UseMiddleware<UpdateLastAccessMiddleware>();
 app.MapControllers();
 
 app.Run();
