@@ -70,6 +70,7 @@ namespace Infrastructure
 
             // Register TokenService
             services.AddScoped<ITokenService, TokenService>();
+            services.AddHostedService<MigrationService>();
 
             return services;
         }

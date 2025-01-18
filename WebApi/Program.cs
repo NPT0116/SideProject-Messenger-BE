@@ -11,6 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
+using WebApi.Middlewares;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console()
@@ -82,12 +83,12 @@ Log.Information("Using connection string: {ConnectionString}", connectionString)
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    //await context.Database.MigrateAsync();
-    await DatabaseSeed.SeedData(context);
-}
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+//     //await context.Database.MigrateAsync();
+//     await DatabaseSeed.SeedData(context);
+// }
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
@@ -105,6 +106,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization(); 
 app.UseExceptionHandler();
+app.UseMiddleware<UpdateLastAccessMiddleware>();
 app.MapControllers();
 
 app.Run();

@@ -27,7 +27,7 @@ RUN dotnet publish "./WebApi.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:
 # Run EF migrations
 FROM build AS ef-migration
 WORKDIR "/src/Infrastructure"
-RUN dotnet ef database update --startup-project ../WebApi
+CMD dotnet ef database update --startup-project ../WebApi
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final

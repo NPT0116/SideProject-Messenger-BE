@@ -13,8 +13,7 @@ namespace Infrastructure.Seed
     {
         public static async Task SeedData(ApplicationDbContext context)
         {
-            Console.WriteLine("Seedddddddddddddddddddddddddddddddd");
-            Console.WriteLine(context.Users.Count());
+  
             // Seed Users
             if (!context.Users.Any())
             {

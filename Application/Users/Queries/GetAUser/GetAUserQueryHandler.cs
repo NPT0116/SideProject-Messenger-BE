@@ -14,15 +14,15 @@ public class GetAUserQueryHandler : IRequestHandler<GetAUserQuery, Response<User
         {
             _userRepository = userRepository;
         }
-    public Task<Response<UserDto>> Handle(GetAUserQuery request, CancellationToken cancellationToken)
+    public async Task<Response<UserDto>> Handle(GetAUserQuery request, CancellationToken cancellationToken)
     {
-        var user =  _userRepository.GetUserById(request.Id);
+        var user = await  _userRepository.GetUserByIdAsync(request.Id);
         if (user == null)
         {
             throw new UserNotFound(request.Id);
         }
 
-        return Task.FromResult( new Response<UserDto>(new UserDto
+        return await Task.FromResult( new Response<UserDto>(new UserDto
         (
            user.Id,
             user.UserName,
