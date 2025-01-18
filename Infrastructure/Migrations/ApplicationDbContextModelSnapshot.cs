@@ -67,35 +67,33 @@ namespace Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ApplicationUserId1")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("InitiatorId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("InitiatorId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("ReceiverId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid?>("UserId1")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("ApplicationUserId1");
 
                     b.HasIndex("InitiatorId");
 
                     b.HasIndex("ReceiverId");
-
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("Friendships");
                 });
@@ -158,11 +156,7 @@ namespace Infrastructure.Migrations
                     b.Property<string>("NickName")
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<Guid?>("UserId1")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -170,8 +164,6 @@ namespace Infrastructure.Migrations
                     b.HasIndex("ChatId");
 
                     b.HasIndex("UserId");
-
-                    b.HasIndex("UserId1");
 
                     b.ToTable("Participants");
                 });
@@ -451,23 +443,27 @@ namespace Infrastructure.Migrations
                 {
                     b.HasOne("Infrastructure.Identity.ApplicationUser", null)
                         .WithMany("FriendshipsInitiated")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
+                        .WithMany("FriendshipsReceived")
+                        .HasForeignKey("ApplicationUserId1");
+
+                    b.HasOne("Domain.Entities.User", "Initiator")
+                        .WithMany("FriendshipsInitiated")
                         .HasForeignKey("InitiatorId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
+                    b.HasOne("Domain.Entities.User", "Receiver")
                         .WithMany("FriendshipsReceived")
                         .HasForeignKey("ReceiverId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.User", null)
-                        .WithMany("FriendshipsInitiated")
-                        .HasForeignKey("UserId");
+                    b.Navigation("Initiator");
 
-                    b.HasOne("Domain.Entities.User", null)
-                        .WithMany("FriendshipsReceived")
-                        .HasForeignKey("UserId1");
+                    b.Navigation("Receiver");
                 });
 
             modelBuilder.Entity("Domain.Entities.Message", b =>
@@ -503,17 +499,15 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Infrastructure.Identity.ApplicationUser", null)
+                    b.HasOne("Domain.Entities.User", "User")
                         .WithMany("Participants")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.User", null)
-                        .WithMany("Participants")
-                        .HasForeignKey("UserId1");
-
                     b.Navigation("Chat");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.Reaction", b =>
@@ -620,8 +614,6 @@ namespace Infrastructure.Migrations
                     b.Navigation("FriendshipsInitiated");
 
                     b.Navigation("FriendshipsReceived");
-
-                    b.Navigation("Participants");
                 });
 #pragma warning restore 612, 618
         }

@@ -12,7 +12,6 @@ public static class UserMapper
     if (applicationUser == null) return null;
 
     var domainUser = new User(
-        Guid.Parse(applicationUser.Id),
         applicationUser.UserName,
         applicationUser.FirstName,
         applicationUser.LastName,
@@ -22,6 +21,8 @@ public static class UserMapper
         IsOnline = applicationUser.IsOnline,
         ProfilePictureId = applicationUser.ProfilePictureId
     };
+
+    domainUser.SetId(Guid.Parse(applicationUser.Id)); // Gán ID từ ApplicationUser
     return domainUser;
 }
 

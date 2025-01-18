@@ -13,15 +13,11 @@ namespace Infrastructure.Seed
     {
         public static async Task SeedData(ApplicationDbContext context)
         {
-            Console.WriteLine("Seedddddddddddddddddddddddddddddddd");
-            Console.WriteLine(context.Users.Count());
             // Seed Users
             if (!context.Users.Any())
             {
-                Console.WriteLine("Run seed for users");
                 var passwordHasher = new PasswordHasher<ApplicationUser>();
                 string defaultPassword = "123456";
-                string hashedPassword = passwordHasher.HashPassword(null, defaultPassword);
                 var users = Enumerable.Range(1, 5000).Select(i =>
                 {
                     var user = new ApplicationUser(
@@ -31,7 +27,7 @@ namespace Infrastructure.Seed
                         $"LastName{i}"
                     ){
                         UserName = $"user{i}",
-                        PasswordHash = hashedPassword
+                        PasswordHash = passwordHasher.HashPassword(null, defaultPassword)
                     };
                     return user;
                 }).ToList();
@@ -39,7 +35,7 @@ namespace Infrastructure.Seed
                 await context.Users.AddRangeAsync(users);
                 await context.SaveChangesAsync();
             }
-            Console.WriteLine("Finish seed for uses");
+
             // Seed Attachments
             // if (!context.Attachments.Any())
             // {
@@ -73,8 +69,10 @@ namespace Infrastructure.Seed
                 var friendships = Enumerable.Range(1, 5000)
                         .Select(i => new Friendship(
                             Guid.NewGuid(), 
-                            userIds[i % userIds.Count], 
-                            userIds[(i + 1) % userIds.Count]))
+                            Guid.Parse(
+                            userIds[i % userIds.Count]), 
+                            Guid.Parse(
+                            userIds[(i + 1) % userIds.Count])))
                         .ToList();
 
                 await context.Friendships.AddRangeAsync(friendships);
@@ -90,7 +88,8 @@ namespace Infrastructure.Seed
                     .Range(1, 5000)
                     .Select(i => new Participant(
                         Guid.NewGuid(),
-                        userIds[i % userIds.Count],
+                        Guid.Parse(
+                        userIds[i % userIds.Count]),
                         chatIds[i % chatIds.Count])).ToList();
 
                 await context.Participants.AddRangeAsync(participants);
