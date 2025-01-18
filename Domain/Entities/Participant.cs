@@ -10,7 +10,7 @@ namespace Domain.Entities
     {
         public Participant(
             Guid id,
-            Guid userId,
+            string userId,
             Guid chatId)
         {
             Id = id;
@@ -18,12 +18,11 @@ namespace Domain.Entities
             ChatId = chatId;
         }
         public Guid Id { get; private set; }
-        public Guid UserId { get; private set; }
+        public string UserId { get; private set; }
         public Guid ChatId { get; private set; }
         public string? NickName { get; private set; }
 
         // Navigation Property
-        public User User { get; private set; }
         public Chat Chat { get; private set; }
         public IReadOnlyCollection<Message> Messages { get; private set; }
 
