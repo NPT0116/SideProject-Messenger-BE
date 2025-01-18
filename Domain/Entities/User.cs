@@ -5,8 +5,17 @@ namespace Domain.Entities
     {
         public User() { }
 
+        public User(Guid id,string username, string firstName, string lastName, string passwordHash)
+        {
+            Id = id;
+            UserName = username;
+            FirstName = firstName;
+            LastName = lastName;
+            PasswordHash = passwordHash;
+        }
         public User(string username, string firstName, string lastName, string passwordHash)
         {
+            
             UserName = username;
             FirstName = firstName;
             LastName = lastName;

@@ -16,9 +16,9 @@ namespace Application.Users.Queries.GetAllUsers
             _userRepository = userRepository;
         }
 
-        Task<GetAllUsersResponse> IRequestHandler<GetAllUsersQuery, GetAllUsersResponse>.Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+        async Task<GetAllUsersResponse> IRequestHandler<GetAllUsersQuery, GetAllUsersResponse>.Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            var users = _userRepository.GetUsers();
+            var users = await _userRepository.GetUsersAsync();
 
             // Map domain entities to 
             var userDtos = users.Select(user => new UserDto(
@@ -28,7 +28,7 @@ namespace Application.Users.Queries.GetAllUsers
                 user.LastName
             )).ToList();
 
-            return Task.FromResult(new GetAllUsersResponse(userDtos));
+            return await Task.FromResult(new GetAllUsersResponse(userDtos));
         }
     }
 }

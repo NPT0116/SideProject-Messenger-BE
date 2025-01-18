@@ -1,20 +1,23 @@
-﻿// Infrastructure/Repositories/UserRepository.cs
-using Application.Dtos.Users;
+﻿using Application.Dtos.Users;
 using Domain;
 using Domain.Entities;
 using Domain.Exceptions.Users;
 using Domain.Repositories;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories
 {
     internal class UserRepository : IUserRepository
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        public UserRepository(UserManager<ApplicationUser> userManager)
+   private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
+
+        public UserRepository(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
+            _context = context;
         }
 
         public async Task<bool> checkPasswordAsync(User user, string password)
@@ -50,11 +53,15 @@ namespace Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-        public User GetUserById(Guid id)
-        {
-            var user = _userManager.FindByIdAsync(id.ToString()).Result;
-            return user == null ?   null: UserMapper.ToDomainUser(user);
-        }
+            public async Task<User> GetUserByIdAsync(Guid id)
+            {
+                string idAsString = id.ToString();
+                var userEntity = await _userManager.Users
+                                            .AsNoTracking()
+                                            .FirstOrDefaultAsync(u => u.Id == idAsString);
+
+                return userEntity == null ? null : UserMapper.ToDomainUser(userEntity);
+            }
 
         public async Task<User> GetUserByUsernameAsync(string UserName)
         {
@@ -62,16 +69,47 @@ namespace Infrastructure.Repositories
             return user == null ? null : UserMapper.ToDomainUser(user);
         }
 
-        public List<User> GetUsers()
+        public async Task<List<User>> GetUsersAsync()
         {
-            return _userManager.Users
+            return await _userManager.Users
                 .Select(u => UserMapper.ToDomainUser(u))
-                .ToList();
+                .ToListAsync();
         }
 
-        public Task<User> UpdateUserAsync(User user)
+
+        public async Task<User> UpdateUserAsync(User user)
         {
-            throw new NotImplementedException();
+            var applicationUser = UserMapper.ToApplicationUser(user);
+            _context.Users.Attach(applicationUser);
+            _context.Entry(applicationUser).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                var entry = ex.Entries.Single();
+                var clientValues = (ApplicationUser)entry.Entity;
+                var databaseEntry = entry.GetDatabaseValues();
+
+                if (databaseEntry == null)
+                {
+                    throw new Exception("Unable to save changes. The user was deleted by another user.");
+                }
+                else
+                {
+                    var databaseValues = (ApplicationUser)databaseEntry.ToObject();
+
+                    // Update the original values with the database values
+                    entry.OriginalValues.SetValues(databaseValues);
+
+                    // Retry the update operation
+                    await _context.SaveChangesAsync();
+                }
+            }
+
+            return UserMapper.ToDomainUser(applicationUser);
         }
 
 

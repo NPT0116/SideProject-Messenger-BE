@@ -29,7 +29,7 @@ namespace Application.Users.Queries.GetMeUser
                 throw new UnauthorizedAccessException("Invalid token");
             }
 
-            var domainUser =  _userRepository.GetUserById(userId.Value);
+            var domainUser =  await _userRepository.GetUserByIdAsync(userId.Value);
             if (domainUser == null)
             {
                 throw new UserNotFound(userId.Value);
