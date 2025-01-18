@@ -25,13 +25,13 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
             var initiatorId = command.request.initiatorId;
             var receiverId = command.request.receiverId;
 
-            var initiator = _userRepository.GetUserById(initiatorId);
+            var initiator = await _userRepository.GetUserByIdAsync(initiatorId);
             if(initiator == null)
             {
                 throw new UserNotFound(initiatorId);
             }
 
-            var receiver = _userRepository.GetUserById(receiverId);
+            var receiver = await _userRepository.GetUserByIdAsync(receiverId);
             if(receiver == null)
             {
                 throw new UserNotFound(receiverId);

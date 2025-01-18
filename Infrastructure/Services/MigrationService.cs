@@ -1,3 +1,4 @@
+using Infrastructure.Seed;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -33,6 +34,8 @@ namespace Infrastructure
                     _logger.LogInformation("Applying pending migrations...");
                     await dbContext.Database.MigrateAsync(cancellationToken);
                     _logger.LogInformation("Migrations applied successfully.");
+                    await DatabaseSeed.SeedData(dbContext);
+
                 }
                 else
                 {

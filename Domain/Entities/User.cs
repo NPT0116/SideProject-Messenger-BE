@@ -13,6 +13,14 @@ namespace Domain.Entities
             LastName = lastName;
             PasswordHash = passwordHash;
         }
+        public User(string username, string firstName, string lastName, string passwordHash)
+        {
+            
+            UserName = username;
+            FirstName = firstName;
+            LastName = lastName;
+            PasswordHash = passwordHash;
+        }
 
         public void SetId(Guid id)
         {

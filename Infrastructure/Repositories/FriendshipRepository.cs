@@ -33,7 +33,7 @@ namespace Infrastructure.Repositories
 
         public async Task<List<User>> GetFriendList(Guid userId)
         {
-            var user = _userRepository.GetUserById(userId);
+            var user = await _userRepository.GetUserByIdAsync(userId);
             if(user == null)
             {
                 throw new UserNotFound(userId); 
