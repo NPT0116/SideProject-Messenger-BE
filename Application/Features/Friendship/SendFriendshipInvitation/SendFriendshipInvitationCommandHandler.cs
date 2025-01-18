@@ -40,7 +40,7 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
             var friendList = await _friendshipRepository.GetFriendList(initiatorId);
             var friendListIds = friendList.Select(fr => fr.Id).ToList();
 
-            if(friendListIds.Any() && friendListIds.Contains(initiatorId))
+            if(friendListIds.Any() && friendListIds.Contains(receiverId))
             {
                 throw new HasAlreadyBeenFriend(initiatorId, receiverId);
             }
