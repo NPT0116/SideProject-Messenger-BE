@@ -14,8 +14,7 @@ namespace Domain.Entities
             PasswordHash = passwordHash;
         }
         public User(string username, string firstName, string lastName, string passwordHash)
-        {
-            
+        {   
             UserName = username;
             FirstName = firstName;
             LastName = lastName;
