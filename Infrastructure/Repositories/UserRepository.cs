@@ -6,6 +6,7 @@ using Domain.Repositories;
 using Infrastructure.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Repositories
 {
@@ -53,15 +54,15 @@ namespace Infrastructure.Repositories
             throw new NotImplementedException();
         }
 
-            public async Task<User> GetUserByIdAsync(Guid id)
-            {
-                string idAsString = id.ToString();
-                var userEntity = await _userManager.Users
-                                            .AsNoTracking()
-                                            .FirstOrDefaultAsync(u => u.Id == idAsString);
+        public async Task<User> GetUserByIdAsync(Guid id)
+        {
+            string idAsString = id.ToString();
+            var userEntity = await _userManager.Users
+                                        .AsNoTracking()
+                                        .FirstOrDefaultAsync(u => u.Id == idAsString);
 
-                return userEntity == null ? null : UserMapper.ToDomainUser(userEntity);
-            }
+            return userEntity == null ? null : UserMapper.ToDomainUser(userEntity);
+        }
 
         public async Task<User> GetUserByUsernameAsync(string UserName)
         {
@@ -77,9 +78,17 @@ namespace Infrastructure.Repositories
         }
 
 
+     
         public async Task<User> UpdateUserAsync(User user)
         {
             var applicationUser = UserMapper.ToApplicationUser(user);
+            var existingUser = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == applicationUser.Id);
+
+            if (existingUser != null)
+            {
+                _context.Entry(existingUser).State = EntityState.Detached;
+            }
+
             _context.Users.Attach(applicationUser);
             _context.Entry(applicationUser).State = EntityState.Modified;
 
@@ -111,6 +120,7 @@ namespace Infrastructure.Repositories
 
             return UserMapper.ToDomainUser(applicationUser);
         }
+
 
 
     }
