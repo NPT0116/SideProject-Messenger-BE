@@ -85,9 +85,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("http://127.0.0.1:5500")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
@@ -102,7 +103,7 @@ var app = builder.Build();
 //     //await context.Database.MigrateAsync();
 //     await DatabaseSeed.SeedData(context);
 // }
-
+app.UseCors("AllowAll");
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
 {
