@@ -12,6 +12,9 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5001
+    volumes:
+      - ./wwwroot:/app/wwwroot
+
     depends_on:
       - db
       - redis
