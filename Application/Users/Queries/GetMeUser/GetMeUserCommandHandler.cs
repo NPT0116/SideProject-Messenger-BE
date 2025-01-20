@@ -40,7 +40,8 @@ namespace Application.Users.Queries.GetMeUser
                 Id = domainUser.Id,
                 UserName = domainUser.UserName,
                 FirstName = domainUser.FirstName,
-                LastName = domainUser.LastName
+                LastName = domainUser.LastName,
+                ProfilePictureId = domainUser.ProfilePictureId
             };
 
             return new Response<GetMeUserResponseDto>(responseDto)
