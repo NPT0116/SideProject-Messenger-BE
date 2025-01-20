@@ -1,4 +1,5 @@
-﻿using Application.Users.Queries.GetAllUsers;
+﻿using Application.Features.UploadProfilePicture;
+using Application.Users.Queries.GetAllUsers;
 using Application.Users.Queries.GetAUser;
 using Application.Users.Queries.GetMeUser;
 using MediatR;
@@ -51,5 +52,24 @@ namespace WebApi.Controllers
             // Return the response
             return Ok(response);
         }
+        [Authorize(AuthenticationSchemes = "Bearer")]
+        [HttpPost("upload-profile-picture")]
+        public async Task<IActionResult> UploadProfilePicture( IFormFile file)
+        {
+            // Lấy UserId từ HttpContext.Items
+            var userId = HttpContext.Items["UserId"] as Guid?;
+
+            if (userId == null)
+            {
+                return Unauthorized("UserId is missing from token.");
+            }
+
+            var uploadProfilePictureDto = new UploadProfilePictureDto(userId.Value, file);
+
+            var response = await _mediator.Send(new UploadProfilePictureCommand(uploadProfilePictureDto));
+
+            return Ok(response);
+        }
+
     }
 }

@@ -1,3 +1,4 @@
+using Domain;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,9 +22,15 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             problemDetails.Extensions.Add("errors", validationErrors);
         }
 
+        else if (exception is BaseException baseException)
+        {
+            problemDetails.Title = baseException.Message;
+            httpContext.Response.StatusCode = (int)baseException.StatusCode;
+        }
         else
         {
-            problemDetails.Title = exception.Message;
+            problemDetails.Title = "An unexpected error occurred.";
+            httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
         }
 
         logger.LogError("{ProblemDetailsTitle}", problemDetails.Title);
