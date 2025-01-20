@@ -12,8 +12,12 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5001
+    volumes:
+      - ./wwwroot:/app/wwwroot
+
     depends_on:
       - db
+      - redis
 
   db:
     image: postgres:latest
@@ -26,6 +30,12 @@ services:
       - "5431:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:

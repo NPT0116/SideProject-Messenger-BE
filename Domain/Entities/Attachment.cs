@@ -9,10 +9,10 @@ namespace Domain.Entities
 {
     public class Attachment
     {
-        public Guid Id { get; private set; }
-        public FileType Type { get; private set; }
-        public string FilePath { get; private set; }
-        public DateTime UploadedAt { get; private set; }
+        public Guid Id { get;  set; }
+        public FileType Type { get;  set; }
+        public string FilePath { get;  set; }
+        public DateTime UploadedAt { get;  set; }
 
     }
 }
