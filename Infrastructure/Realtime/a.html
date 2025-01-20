@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SignalR Video Call Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.11/signalr.min.js"></script>
+    <style>
+      #localVideo {
+        transform: scaleX(-1); /* Flip the video horizontally */
+      }
+      video {
+        width: 300px;
+        height: 200px;
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SignalR Video Call Test</h1>
+    <video id="localVideo" autoplay playsinline></video>
+    <div id="remoteVideos"></div>
+    <button id="startCall">Start Call</button>
+
+    <script>
+      const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/videocallhub")
+        .build();
+
+      connection.start().catch((err) => console.error(err.toString()));
+
+      const localVideo = document.getElementById("localVideo");
+      const remoteVideos = document.getElementById("remoteVideos");
+      const startCallButton = document.getElementById("startCall");
+
+      let localStream;
+      const peerConnections = {};
+      const configuration = {
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      };
+
+      // Generate a unique user ID for each tab
+      const userId = Math.random().toString(36).substring(2);
+
+      startCallButton.onclick = async () => {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        localVideo.srcObject = localStream;
+
+        connection.invoke("JoinCall", userId);
+
+        connection.on("UserJoined", async (newUserId) => {
+          if (newUserId === userId) return;
+
+          const peerConnection = new RTCPeerConnection(configuration);
+          peerConnections[newUserId] = peerConnection;
+
+          localStream
+            .getTracks()
+            .forEach((track) => peerConnection.addTrack(track, localStream));
+
+          peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+              connection.invoke(
+                "SendSignal",
+                newUserId,
+                JSON.stringify({ candidate: event.candidate })
+              );
+            }
+          };
+
+          peerConnection.ontrack = (event) => {
+            let remoteVideo = document.getElementById(
+              `remoteVideo-${newUserId}`
+            );
+            if (!remoteVideo) {
+              remoteVideo = document.createElement("video");
+              remoteVideo.id = `remoteVideo-${newUserId}`;
+              remoteVideo.autoplay = true;
+              remoteVideo.playsinline = true;
+              remoteVideos.appendChild(remoteVideo);
+            }
+            remoteVideo.srcObject = event.streams[0];
+          };
+
+          const offer = await peerConnection.createOffer();
+          await peerConnection.setLocalDescription(offer);
+          connection.invoke(
+            "SendSignal",
+            newUserId,
+            JSON.stringify({ sdp: peerConnection.localDescription })
+          );
+        });
+      };
+
+      connection.on("ReceiveSignal", async (newUserId, signal) => {
+        if (newUserId === userId) return;
+
+        const peerConnection =
+          peerConnections[newUserId] || new RTCPeerConnection(configuration);
+        peerConnections[newUserId] = peerConnection;
+
+        const message = JSON.parse(signal);
+
+        if (message.sdp) {
+          await peerConnection.setRemoteDescription(
+            new RTCSessionDescription(message.sdp)
+          );
+          if (message.sdp.type === "offer") {
+            const answer = await peerConnection.createAnswer();
+            await peerConnection.setLocalDescription(answer);
+            connection.invoke(
+              "SendSignal",
+              newUserId,
+              JSON.stringify({ sdp: peerConnection.localDescription })
+            );
+          }
+        } else if (message.candidate) {
+          await peerConnection.addIceCandidate(
+            new RTCIceCandidate(message.candidate)
+          );
+        }
+      });
+
+      connection.on("UserLeft", (leftUserId) => {
+        const remoteVideo = document.getElementById(
+          `remoteVideo-${leftUserId}`
+        );
+        if (remoteVideo) {
+          remoteVideo.srcObject = null;
+          remoteVideo.remove();
+        }
+        if (peerConnections[leftUserId]) {
+          peerConnections[leftUserId].close();
+          delete peerConnections[leftUserId];
+        }
+      });
+    </script>
+  </body>
+</html>

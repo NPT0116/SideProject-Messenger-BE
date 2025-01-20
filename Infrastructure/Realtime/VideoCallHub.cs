@@ -8,14 +8,20 @@ namespace Infrastructure.Realtime
 {
     public class VideoCallHub : Hub
     {
-        public async Task SendMessage(string user, string message)
+        public async Task JoinCall(string userId)
         {
-            await Clients.All.SendAsync("ReceiveMessage", user, message);
+            await Clients.Others.SendAsync("UserJoined", userId);
         }
 
-    public async Task SendSignal(string user, string signal)
+        public async Task SendSignal(string userId, string signal)
         {
-            await Clients.User(user).SendAsync("ReceiveSignal", signal);
+            await Clients.User(userId).SendAsync("ReceiveSignal", Context.ConnectionId, signal);
+        }
+
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            await Clients.Others.SendAsync("UserLeft", Context.ConnectionId);
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }
