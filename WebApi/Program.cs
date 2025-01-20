@@ -3,6 +3,7 @@ using System.Text;
 using Application;
 using FluentValidation.AspNetCore;
 using Infrastructure;
+using Infrastructure.Realtime;
 using Infrastructure.Seed;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -108,5 +109,7 @@ app.UseAuthorization();
 app.UseExceptionHandler();
 app.UseMiddleware<UpdateLastAccessMiddleware>();
 app.MapControllers();
+
+app.MapHub<VideoCallHub>("/videocallhub");
 
 app.Run();

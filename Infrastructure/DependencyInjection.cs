@@ -72,6 +72,8 @@ namespace Infrastructure
             services.AddScoped<ITokenService, TokenService>();
             services.AddHostedService<MigrationService>();
 
+            services.AddSignalR();
+
             return services;
         }
 
