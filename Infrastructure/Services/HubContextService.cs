@@ -18,6 +18,11 @@ namespace Infrastructure.Services
             await _hubContext.Groups.AddToGroupAsync(connectionId, groupName);
         }
 
+        public string GetConnectionId(string userId)
+        {
+            return Guid.NewGuid().ToString();
+        }
+
         public async Task RemoveFromGroupAsync(string connectionId, string groupName)
         {
             await _hubContext.Groups.RemoveFromGroupAsync(connectionId, groupName);

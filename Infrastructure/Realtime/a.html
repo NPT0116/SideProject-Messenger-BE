@@ -63,6 +63,15 @@
         await joinCall(roomId);
       });
 
+      connection.on("ReceiveNotification", async (notification) => {
+        const [method, callerId, roomId] = notification.split(":");
+        if (method === "CallStarted") {
+          console.log(`Call started by: ${callerId}`);
+          alert(`Call started by: ${callerId}`);
+          await joinCall(roomId);
+        }
+      });
+
       connection.on("UserJoined", async (newUserId) => {
         if (newUserId === userId) return;
 

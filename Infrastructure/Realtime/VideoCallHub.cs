@@ -16,17 +16,36 @@ namespace Infrastructure.Realtime
     {
         private readonly IMediator _mediator;
         private readonly IHubContextService _hubContextService;
+        private readonly INotificationService _notificationService;
 
-        public VideoCallHub(IMediator mediator, IHubContextService hubContextService)
+        public VideoCallHub(IMediator mediator, 
+            IHubContextService hubContextService,
+            INotificationService notificationService)
         {
             _mediator = mediator;
             _hubContextService = hubContextService;
+            _notificationService = notificationService;
         }
 
-        public async Task StartCall(string userId)
+        public async Task StartCall(string friendId)
         {
-            var roomId = await _mediator.Send(new StartCallCommand(userId));
-            await _hubContextService.SendToGroupAsync(roomId, "CallStarted", userId);
+            var callerId = Context.UserIdentifier; // Extract callerId from the context (JWT)
+            var roomId = await _mediator.Send(new StartCallCommand(friendId));
+
+            // Notify the caller about the generated roomId
+            await Clients.Caller.SendAsync("RoomCreated", roomId);
+
+            // Check if the friend is online
+            var friendConnectionId = _hubContextService.GetConnectionId(friendId);
+            if (friendConnectionId != null)
+            {
+                await Clients.Client(friendConnectionId).SendAsync("CallStarted", callerId, roomId);
+            }
+            else
+            {
+                // Store the notification if the friend is offline
+                await _notificationService.AddPendingNotificationAsync(friendId, $"CallStarted:{callerId}:{roomId}");
+            }
         }
 
         public async Task JoinCall(string roomId, string userId)
