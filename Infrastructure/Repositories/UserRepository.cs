@@ -77,7 +77,11 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
-
+        public async Task<bool> ExistsAsync(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            return user != null;
+        }
      
         public async Task<User> UpdateUserAsync(User user)
         {
@@ -121,7 +125,13 @@ namespace Infrastructure.Repositories
             return UserMapper.ToDomainUser(applicationUser);
         }
 
-
-
+        public Task<User> GetUserFromParticipantId(Guid participantId)
+        {
+            return _context.Participants
+                .Include(p => p.User)
+                .Where(p => p.Id == participantId)
+                .Select(p => p.User)
+                .FirstOrDefaultAsync();
+        }
     }
 }

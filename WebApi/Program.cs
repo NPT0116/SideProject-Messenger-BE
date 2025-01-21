@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Application;
 using FluentValidation.AspNetCore;
 using Infrastructure;
@@ -11,6 +12,7 @@ using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
 using StackExchange.Redis;
+using WebApi.Hubs;
 using WebApi.Middlewares;
 
 Log.Logger = new LoggerConfiguration()
@@ -58,10 +60,14 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddSignalR();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddApplication();
 
 // Configure Redis
+var RedisConnection = builder.Configuration.GetConnectionString("RedisConnection");
+Log.Information("Using RedisConnection string: {RedisConnection}", RedisConnection);
+
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
@@ -76,7 +82,12 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(
 // global exception handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Host.UseSerilog((context, loggerConfiguration) =>
 {
@@ -85,6 +96,7 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
 });
 
 builder.Services.AddAuthorization();
+
 // Add this section to conditionally use appsettings.json for Local environment
 if (builder.Environment.IsEnvironment("Local"))
 {
@@ -108,7 +120,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 Log.Information("Using connection string: {ConnectionString}", connectionString);
 
 var app = builder.Build();
-
+app.UseCors("AllowAll");
 // using (var scope = app.Services.CreateScope())
 // {
 //     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -136,5 +148,8 @@ app.UseExceptionHandler();
 app.UseMiddleware<UpdateLastAccessMiddleware>(); // Enable the middleware
 app.UseMiddleware<JwtMiddleware>();
 app.MapControllers();
+
+// Map SignalR hubs
+app.MapHub<ChatHub>("/chathub");
 
 app.Run();

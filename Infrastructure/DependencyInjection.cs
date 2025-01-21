@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Infrastructure
@@ -24,16 +25,10 @@ namespace Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
-            {
-                                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+        services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+           .EnableSensitiveDataLogging());
 
-                           .EnableSensitiveDataLogging();
-                               options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
-
-                           
-            }
-                    );
 
 
             services.AddScoped<IApplicationDbContext>(sp =>
@@ -78,6 +73,9 @@ namespace Infrastructure
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFriendshipRepository, FriendshipRepository>();
             services.AddScoped<IAttachmentRepository, AttachmentRepository>();
+            services.AddScoped<IChatRepository, ChatRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<IParticipantRepository, ParticipantRepository>();
 
             // Register TokenService
             services.AddScoped<ITokenService, TokenService>();

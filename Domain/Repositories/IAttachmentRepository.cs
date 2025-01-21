@@ -5,8 +5,8 @@ namespace Domain.Repositories;
 
 public interface IAttachmentRepository
 {
-    public Task<Attachment> GetById(Guid id);
-    public Task<Attachment> Create(Attachment attachment);
-    public Task<Attachment> Update(Attachment attachment);
-    public Task<Attachment> Delete(Guid id);
+    public Task<Attachment> GetByIdAsync(Guid id);
+    public Task<Attachment> CreateAsync(Attachment attachment);
+    public Task<Attachment> UpdateAsync(Attachment attachment);
+    public Task<Attachment> DeleteAsync(Guid id);
 }

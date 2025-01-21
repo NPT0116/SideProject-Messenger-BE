@@ -58,7 +58,7 @@ public class UploadProfilePictureHandler : IRequestHandler<UploadProfilePictureC
         var filePath = await _fileUploadService.UploadImageAsync(file.OpenReadStream(), fileName, uploadPath);
         Console.WriteLine(filePath);
         // Create attachment entity
-        var attachment = new Attachment
+        var attachment = new Domain.Entities.Attachment
         {
             Id = Guid.NewGuid(),
             FilePath = filePath,
@@ -67,7 +67,7 @@ public class UploadProfilePictureHandler : IRequestHandler<UploadProfilePictureC
         };
 
         // Save attachment to repository
-        var savedAttachment = await _attachmentRepository.Create(attachment);
+        var savedAttachment = await _attachmentRepository.CreateAsync(attachment);
 
         // Optionally, update the user's profile picture URL in the database
         user.ProfilePictureId = savedAttachment.Id;

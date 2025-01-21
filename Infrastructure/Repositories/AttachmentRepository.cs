@@ -15,12 +15,12 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Attachment> GetById(Guid id)
+        public async Task<Attachment> GetByIdAsync(Guid id)
         {
             return await _context.Attachments.FindAsync(id);
         }
 
-        public async Task<Attachment> Create(Attachment attachment)
+        public async Task<Attachment> CreateAsync(Attachment attachment)
         {
             if (attachment == null)
             {
@@ -36,7 +36,7 @@ namespace Infrastructure.Repositories
             return attachment;
         }
 
-        public async Task<Attachment> Update(Attachment attachment)
+        public async Task<Attachment> UpdateAsync(Attachment attachment)
         {
             if (attachment == null)
             {
@@ -51,7 +51,7 @@ namespace Infrastructure.Repositories
             return attachment;
         }
 
-        public async Task<Attachment> Delete(Guid id)
+        public async Task<Attachment> DeleteAsync(Guid id)
         {
             var attachment = await _context.Attachments.FindAsync(id);
 
