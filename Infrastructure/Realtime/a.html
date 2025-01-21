@@ -31,8 +31,6 @@
         .start()
         .then(() => {
           console.log("SignalR connected.");
-          // Join the room initially
-          connection.invoke("JoinCall", roomId, userId);
         })
         .catch((err) => console.error(err.toString()));
 
@@ -48,19 +46,21 @@
 
       // Generate a unique user ID for each tab
       const userId = Math.random().toString(36).substring(2);
-      const roomId = "room1"; // Replace with dynamic room ID as needed
+      const friendId = "friendUserId"; // Replace with the actual friend's user ID
 
-      connection.on("CallStarted", async (callerId) => {
+      connection.on("CallStarted", async (callerId, roomId) => {
         if (callerId === userId) return;
 
         console.log(`Call started by: ${callerId}`);
         alert(`Call started by: ${callerId}`);
 
-        // Change the button text to "Join Call"
-        startCallButton.textContent = "Join Call";
-
         // Automatically join the call if desired
-        await joinCall();
+        await joinCall(roomId);
+      });
+
+      connection.on("RoomCreated", async (roomId) => {
+        console.log(`Room created: ${roomId}`);
+        await joinCall(roomId);
       });
 
       connection.on("UserJoined", async (newUserId) => {
@@ -118,7 +118,6 @@
 
         console.log(`Received signal from ${newUserId}`);
 
-        // Get or create the peer connection
         const peerConnection =
           peerConnections[newUserId] || new RTCPeerConnection(configuration);
         peerConnections[newUserId] = peerConnection;
@@ -140,7 +139,6 @@
                 console.log(`Sending SDP answer to ${newUserId}`);
                 connection.invoke(
                   "SendSignal",
-                  roomId,
                   newUserId,
                   JSON.stringify({ sdp: peerConnection.localDescription })
                 );
@@ -202,21 +200,15 @@
           });
           localVideo.srcObject = localStream;
 
-          // Notify others that you have started the call
-          connection.invoke("StartCall", roomId, userId);
+          // Notify the friend that you have started the call
+          connection.invoke("StartCall", friendId);
 
           // Change the button text to "Join Call"
           startCallButton.textContent = "Join Call";
-
-          // Join the call
-          await joinCall();
-        } else {
-          // Join the call
-          await joinCall();
         }
       };
 
-      async function joinCall() {
+      async function joinCall(roomId) {
         // Notify others that you have joined the call
         connection.invoke("JoinCall", roomId, userId);
 
@@ -234,7 +226,6 @@
           console.log(`Sending SDP offer to ${newUserId}`);
           connection.invoke(
             "SendSignal",
-            roomId,
             newUserId,
             JSON.stringify({ sdp: peerConnection.localDescription })
           );

@@ -1,6 +1,7 @@
 ﻿// filepath: /c:/Users/Admin/Desktop/web_messenger/Infrastructure/DependencyInjection.cs
 using System.Text;
 using Application.Data;
+using Application.Services;
 using Domain;
 using Domain.Repositories;
 using Infrastructure.Identity;
@@ -73,6 +74,7 @@ namespace Infrastructure
             services.AddHostedService<MigrationService>();
 
             services.AddSignalR();
+            services.AddScoped<IHubContextService, HubContextService>();
 
             return services;
         }
