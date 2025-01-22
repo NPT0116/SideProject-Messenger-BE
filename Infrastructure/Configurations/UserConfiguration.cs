@@ -27,6 +27,7 @@ namespace Infrastructure.Configurations
             builder.HasMany(u => u.Participants)
                 .WithOne()
                 .HasForeignKey(f => f.UserId);
+
         }
     }
 }

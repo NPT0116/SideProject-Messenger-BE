@@ -24,7 +24,7 @@ namespace Domain.Entities
 
         // Navigation Property
         public Chat Chat { get; private set; }
-        public User User { get; private set; }
+        // public User User { get; private set; }
         public IReadOnlyCollection<Message> Messages { get; private set; }
 
     }

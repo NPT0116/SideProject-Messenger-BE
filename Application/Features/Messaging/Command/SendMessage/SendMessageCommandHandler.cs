@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Application.Features.Messaging.SendMessage;
 
-public class SendMessageCommandHandler : IRequestHandler<SendMessageCommand, Response<Message>>
+public class SendMessageCommandHandler : IRequestHandler<SendMessageCommand, Response<SendMessageResponseDto>>
 {
     private readonly IMessageRepository _messageRepository;
     private readonly IChatRepository _chatRepository;
@@ -19,7 +19,7 @@ public class SendMessageCommandHandler : IRequestHandler<SendMessageCommand, Res
         _chatRepository = chatRepository;
         _participantRepository = participantRepository;
     }
-    public async Task<Response<Message>> Handle(SendMessageCommand request, CancellationToken cancellationToken)
+    public async Task<Response<SendMessageResponseDto>> Handle(SendMessageCommand request, CancellationToken cancellationToken)
     {
         var chat = await _chatRepository.GetByIdAsync(request.request.ChatId);
         if (chat == null)
@@ -29,6 +29,7 @@ public class SendMessageCommandHandler : IRequestHandler<SendMessageCommand, Res
         var participantId = await _participantRepository.GetParticipantIdByUserIdAndChatIdAsync(request.request.UserId, request.request.ChatId);
         var message = new Message(new Guid(),request.request.Content, request.request.Type, participantId, request.request.ChatId);
         await _messageRepository.CreateAsync(message);
-        return new Response<Message>(message);
+        var response = new SendMessageResponseDto(message.Id, message.Content, message.Type, message.SentAt, message.SenderId, message.ChatId);
+        return new Response<SendMessageResponseDto>(response);
     }
 }
