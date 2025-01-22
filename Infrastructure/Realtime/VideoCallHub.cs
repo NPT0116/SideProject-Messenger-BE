@@ -39,10 +39,12 @@ namespace Infrastructure.Realtime
             var friendConnectionId = _hubContextService.GetConnectionId(friendId);
             if (friendConnectionId != null)
             {
+                Console.WriteLine("Friend is online");
                 await Clients.Client(friendConnectionId).SendAsync("CallStarted", callerId, roomId);
             }
             else
             {
+                Console.WriteLine("Friend is offline");
                 // Store the notification if the friend is offline
                 await _notificationService.AddPendingNotificationAsync(friendId, $"CallStarted:{callerId}:{roomId}");
             }
@@ -57,13 +59,30 @@ namespace Infrastructure.Realtime
 
         public async Task SendSignal(string roomId, string userId, string signal)
         {
-            await _mediator.Send(new SendSignalCommand(Context.ConnectionId, roomId, userId, signal));
-            await _hubContextService.SendToGroupAsync(roomId, "ReceiveSignal", Context.ConnectionId, signal);
+            try
+            {
+                await _mediator.Send(new SendSignalCommand(Context.ConnectionId, roomId, userId, signal));
+                await _hubContextService.SendToGroupAsync(roomId, "ReceiveSignal", Context.ConnectionId, signal);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                Console.WriteLine($"Error in SendSignal: {ex.Message}");
+                throw;
+            }
+        }
+
+        public override async Task OnConnectedAsync()
+        {
+            var userId = Context.UserIdentifier;
+            _hubContextService.AddConnection(userId, Context.ConnectionId);
+            await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            // Handle user leaving the room
+            var userId = Context.UserIdentifier;
+            _hubContextService.RemoveConnection(userId);
             await base.OnDisconnectedAsync(exception);
         }
 

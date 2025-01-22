@@ -20,6 +20,11 @@
     <h1>SignalR Video Call Test</h1>
     <video id="localVideo" autoplay playsinline></video>
     <div id="remoteVideos"></div>
+    <input
+      type="text"
+      id="friendIdInput"
+      placeholder="Enter friend's user ID"
+    />
     <button id="startCall">Start Call</button>
 
     <script>
@@ -37,8 +42,10 @@
       const localVideo = document.getElementById("localVideo");
       const remoteVideos = document.getElementById("remoteVideos");
       const startCallButton = document.getElementById("startCall");
+      const friendIdInput = document.getElementById("friendIdInput");
 
       let localStream;
+      let roomId;
       const peerConnections = {};
       const configuration = {
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -46,7 +53,7 @@
 
       // Generate a unique user ID for each tab
       const userId = Math.random().toString(36).substring(2);
-      const friendId = "friendUserId"; // Replace with the actual friend's user ID
+      console.log(`User ID: ${userId}`);
 
       connection.on("CallStarted", async (callerId, roomId) => {
         if (callerId === userId) return;
@@ -56,20 +63,13 @@
 
         // Automatically join the call if desired
         await joinCall(roomId);
+        startCallButton.textContent = "Join Call";
       });
 
       connection.on("RoomCreated", async (roomId) => {
         console.log(`Room created: ${roomId}`);
         await joinCall(roomId);
-      });
-
-      connection.on("ReceiveNotification", async (notification) => {
-        const [method, callerId, roomId] = notification.split(":");
-        if (method === "CallStarted") {
-          console.log(`Call started by: ${callerId}`);
-          alert(`Call started by: ${callerId}`);
-          await joinCall(roomId);
-        }
+        startCallButton.textContent = "Join Call";
       });
 
       connection.on("UserJoined", async (newUserId) => {
@@ -148,6 +148,7 @@
                 console.log(`Sending SDP answer to ${newUserId}`);
                 connection.invoke(
                   "SendSignal",
+                  roomId,
                   newUserId,
                   JSON.stringify({ sdp: peerConnection.localDescription })
                 );
@@ -205,9 +206,16 @@
         if (startCallButton.textContent === "Start Call") {
           localStream = await navigator.mediaDevices.getUserMedia({
             video: true,
-            audio: true,
+            audio: false,
           });
           localVideo.srcObject = localStream;
+
+          // Get the friend's user ID from the input field
+          const friendId = friendIdInput.value.trim();
+          if (!friendId) {
+            alert("Please enter a friend's user ID.");
+            return;
+          }
 
           // Notify the friend that you have started the call
           connection.invoke("StartCall", friendId);
@@ -235,6 +243,7 @@
           console.log(`Sending SDP offer to ${newUserId}`);
           connection.invoke(
             "SendSignal",
+            roomId,
             newUserId,
             JSON.stringify({ sdp: peerConnection.localDescription })
           );

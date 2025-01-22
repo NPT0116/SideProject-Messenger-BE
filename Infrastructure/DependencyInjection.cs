@@ -5,12 +5,14 @@ using Application.Services;
 using Domain;
 using Domain.Repositories;
 using Infrastructure.Identity;
+using Infrastructure.Realtime;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -74,7 +76,10 @@ namespace Infrastructure
             services.AddHostedService<MigrationService>();
 
             services.AddSignalR();
+            services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
             services.AddScoped<IHubContextService, HubContextService>();
+            services.AddScoped<INotificationService, NotificationService>();
+            services.AddScoped<INotificationConsumer, NotificationConsumer>();
 
             return services;
         }
