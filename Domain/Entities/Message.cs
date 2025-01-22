@@ -9,6 +9,10 @@ namespace Domain.Entities
 {
     public class Message
     {
+        public Message()
+        {
+            // Required by EF
+        }
         public Message(
             Guid id,
             string content,

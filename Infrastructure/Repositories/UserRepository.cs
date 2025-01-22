@@ -66,7 +66,8 @@ namespace Infrastructure.Repositories
 
         public async Task<User> GetUserByUsernameAsync(string UserName)
         {
-            var user = await _userManager.FindByNameAsync(UserName);
+
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserName == UserName);
             return user == null ? null : UserMapper.ToDomainUser(user);
         }
 
@@ -77,7 +78,11 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
         }
 
-
+        public async Task<bool> ExistsAsync(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            return user != null;
+        }
      
         public async Task<User> UpdateUserAsync(User user)
         {
@@ -121,7 +126,15 @@ namespace Infrastructure.Repositories
             return UserMapper.ToDomainUser(applicationUser);
         }
 
-
-
+        public async Task<User> GetUserFromParticipantId(Guid participantId)
+        {
+            var participant = await _context.Participants.AsNoTracking().FirstOrDefaultAsync(p => p.Id == participantId);
+            if (participant == null)
+            {
+                return null;
+            }
+            var user = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == participant.UserId);
+            return UserMapper.ToDomainUser(user);
+        }
     }
 }

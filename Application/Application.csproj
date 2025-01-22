@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Features\Attachment\Commands\" />
     <Folder Include="Users\Commands\" />
     <Folder Include="Validators\" />
   </ItemGroup>

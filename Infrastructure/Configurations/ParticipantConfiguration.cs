@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -18,6 +19,9 @@ namespace Infrastructure.Configurations
             builder.HasOne(p => p.Chat)
                 .WithMany(c => c.Participants)
                 .HasForeignKey(p => p.ChatId);
+            builder.HasOne<ApplicationUser>()
+                .WithOne()
+                .HasForeignKey<Participant>(p => p.UserId);
         }
     }
 }

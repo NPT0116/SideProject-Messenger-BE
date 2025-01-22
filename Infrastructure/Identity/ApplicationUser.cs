@@ -26,8 +26,8 @@ namespace Infrastructure.Identity
         public IReadOnlyCollection<Participant> Participants { get; private set; }
 
 
-        [Timestamp]
-        public byte[] RowVersion { get; set; }
+        // [Timestamp]
+        // public byte[] RowVersion { get; set; }
 
     }
 }

@@ -2,6 +2,7 @@
 using Application.Users.Queries.GetAllUsers;
 using Application.Users.Queries.GetAUser;
 using Application.Users.Queries.GetMeUser;
+using Application.Users.Queries.GetUserFromParticipantId;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -71,5 +72,15 @@ namespace WebApi.Controllers
             return Ok(response);
         }
 
+        [HttpGet("GetUserFromPariticipant/{participantId}")]
+        public async Task<IActionResult> GetUserFromParticipant(Guid participantId)
+        {
+            var response = await _mediator.Send(new GetUserFromParticipantIdQuery(participantId));
+            if (response == null)
+            {
+                return NotFound();
+            }
+            return Ok(response);
+        }
     }
 }
