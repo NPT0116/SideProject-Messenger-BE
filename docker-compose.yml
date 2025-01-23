@@ -12,9 +12,13 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5001
+    volumes:
+      - ./wwwroot:/app/wwwroot
+
     depends_on:
       - db
       - rabbitmq
+      - redis
 
   db:
     image: postgres:latest
@@ -36,6 +40,12 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    ports:
+      - "6379:6379"
 
 volumes:
   postgres_data:

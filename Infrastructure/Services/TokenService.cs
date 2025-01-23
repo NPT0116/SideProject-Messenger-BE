@@ -69,8 +69,10 @@ namespace Infrastructure.Services
             try
             {
                 var principal = tokenHandler.ValidateToken(token, validationParameters, out SecurityToken validatedToken);
-
-
+                // foreach(var claims in principal.Claims)
+                // {
+                //     _logger.LogInformation(claims.Type + " " + claims.Value);
+                // }
                 var userIdClaim = principal.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
                           ?? principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 

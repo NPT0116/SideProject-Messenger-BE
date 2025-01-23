@@ -1,5 +1,5 @@
-// filepath: /C:/Users/Admin/Desktop/web_messenger/WebApi/Program.cs
 using System.Text;
+using System.Text.Json.Serialization;
 using Application;
 using FluentValidation.AspNetCore;
 using Infrastructure;
@@ -12,6 +12,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Serilog;
+using StackExchange.Redis;
+using WebApi.Hubs;
 using WebApi.Middlewares;
 
 Log.Logger = new LoggerConfiguration()
@@ -30,6 +32,7 @@ builder.Services.AddSwaggerGen(c =>
         Version = "v1",
         Description = "API for Sushi Restaurant Management System"
     });
+    c.OperationFilter<FileUploadOperationFilter>();
 
     // Adding Authentication for Swagger
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -58,13 +61,34 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.Services.AddSignalR();
 builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddApplication();
+
+// Configure Redis
+var RedisConnection = builder.Configuration.GetConnectionString("RedisConnection");
+Log.Information("Using RedisConnection string: {RedisConnection}", RedisConnection);
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("RedisConnection");
+    options.InstanceName = "WebApi_";
+});
+
+// Register ConnectionMultiplexer
+builder.Services.AddSingleton<IConnectionMultiplexer>(
+    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("RedisConnection"))
+);
 
 // global exception handler
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 builder.Host.UseSerilog((context, loggerConfiguration) =>
 {
@@ -73,12 +97,15 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
 });
 
 builder.Services.AddAuthorization();
+
 // Add this section to conditionally use appsettings.json for Local environment
 if (builder.Environment.IsEnvironment("Local"))
 {
     builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 }
 
+// Register the background service
+builder.Services.AddHostedService<LastSeenSyncService>();
 
 // Add cors
 builder.Services.AddCors(options =>
@@ -96,14 +123,13 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 Log.Information("Using connection string: {ConnectionString}", connectionString);
 
 var app = builder.Build();
-
-// using (var scope = app.Services.CreateScope())
-// {
-//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//     //await context.Database.MigrateAsync();
-//     await DatabaseSeed.SeedData(context);
-// }
 app.UseCors("AllowAll");
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await context.Database.MigrateAsync();
+    await DatabaseSeed.SeedData(context);
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
 {
@@ -117,11 +143,16 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization(); 
 app.UseExceptionHandler();
-app.UseMiddleware<UpdateLastAccessMiddleware>();
+app.UseMiddleware<UpdateLastAccessMiddleware>(); // Enable the middleware
+app.UseMiddleware<JwtMiddleware>();
 app.MapControllers();
+
+// Map SignalR hubs
+app.MapHub<ChatHub>("/chathub");
 
 app.MapHub<VideoCallHub>("/videocallhub");
 

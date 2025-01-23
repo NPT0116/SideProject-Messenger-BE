@@ -84,6 +84,24 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "User",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserName = table.Column<string>(type: "text", nullable: false),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    PasswordHash = table.Column<string>(type: "text", nullable: false),
+                    LastSeen = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsOnline = table.Column<bool>(type: "boolean", nullable: false),
+                    ProfilePictureId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_User", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "AspNetRoleClaims",
                 columns: table => new
                 {
@@ -212,30 +230,6 @@ namespace Infrastructure.Migrations
                         name: "FK_Friendships_AspNetUsers_ReceiverId",
                         column: x => x.ReceiverId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "User",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    UserName = table.Column<string>(type: "text", nullable: false),
-                    FirstName = table.Column<string>(type: "text", nullable: false),
-                    LastName = table.Column<string>(type: "text", nullable: false),
-                    PasswordHash = table.Column<string>(type: "text", nullable: false),
-                    LastSeen = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    IsOnline = table.Column<bool>(type: "boolean", nullable: false),
-                    ProfilePictureId = table.Column<Guid>(type: "uuid", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_User", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_User_Attachments_ProfilePictureId",
-                        column: x => x.ProfilePictureId,
-                        principalTable: "Attachments",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -399,11 +393,6 @@ namespace Infrastructure.Migrations
                 name: "IX_Reactions_MessageId",
                 table: "Reactions",
                 column: "MessageId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_User_ProfilePictureId",
-                table: "User",
-                column: "ProfilePictureId");
         }
 
         /// <inheritdoc />

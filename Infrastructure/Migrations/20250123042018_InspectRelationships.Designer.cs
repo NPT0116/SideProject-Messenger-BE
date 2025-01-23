@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250122145724_InspectRelationships")]
+    [Migration("20250123042018_InspectRelationships")]
     partial class InspectRelationships
     {
         /// <inheritdoc />
@@ -216,8 +216,6 @@ namespace Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ProfilePictureId");
 
                     b.ToTable("User");
                 });
@@ -501,17 +499,6 @@ namespace Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Message");
-                });
-
-            modelBuilder.Entity("Domain.Entities.User", b =>
-                {
-                    b.HasOne("Domain.Entities.Attachment", "ProfilePicture")
-                        .WithMany()
-                        .HasForeignKey("ProfilePictureId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ProfilePicture");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
