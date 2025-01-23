@@ -28,8 +28,11 @@
     <button id="startCall">Start Call</button>
 
     <script>
+      // Generate a unique user ID for each tab
+      const userId = Math.random().toString(36).substring(2);
+      console.log(`User ID: ${userId}`);
       const connection = new signalR.HubConnectionBuilder()
-        .withUrl("http://localhost:5141/videocallhub") // Ensure this URL matches your server configuration
+        .withUrl(`http://localhost:5141/videocallhub?userId=${userId}`) // Ensure this URL matches your server configuration
         .build();
 
       connection
@@ -50,10 +53,6 @@
       const configuration = {
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       };
-
-      // Generate a unique user ID for each tab
-      const userId = Math.random().toString(36).substring(2);
-      console.log(`User ID: ${userId}`);
 
       connection.on("CallStarted", async (callerId, roomId) => {
         if (callerId === userId) return;

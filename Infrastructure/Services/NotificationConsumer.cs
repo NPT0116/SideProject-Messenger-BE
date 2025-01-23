@@ -16,10 +16,18 @@ namespace Infrastructure.Services
     {
         private readonly IConnection _connection;
         private readonly IChannel _channel;
+        private readonly IHubContextService _hubContextService;
         private readonly IHubContext<VideoCallHub> _hubContext;
-        public NotificationConsumer(IHubContext<VideoCallHub> hubContext)
+        private readonly INotificationStorageService _notificationStorage;
+
+        public NotificationConsumer(
+            IHubContextService hubContextService,
+            IHubContext<VideoCallHub> hubContext,
+            INotificationStorageService notificationStorage)
         {
+            _hubContextService = hubContextService;
             _hubContext = hubContext;
+            _notificationStorage = notificationStorage;
             var factory = new ConnectionFactory() { HostName = "localhost" };
             _connection = factory
                 .CreateConnectionAsync()
@@ -50,8 +58,18 @@ namespace Infrastructure.Services
                 var message = Encoding.UTF8.GetString(body);
                 var notification = JsonConvert.DeserializeObject<NotificationMessage>(message);
 
+                var connectionId = _hubContextService.GetConnectionId(notification.UserId);
+                if (connectionId != null)
+                {
+                    // Deliver the notification immediately
+                    await _hubContext.Clients.User(notification.UserId).SendAsync("ReceiveNotification", notification.Notification);
+                }
+                else
+                {
+                    // Store the notification for later delivery
+                    await _notificationStorage.SaveNotificationAsync(notification.UserId, notification.Notification);
+                }
                 // Deliver the notification to the user
-                await _hubContext.Clients.User(notification.UserId).SendAsync("ReceiveNotification", notification.Notification);
             };
 
             await _channel.BasicConsumeAsync(queue: "notifications", autoAck: true, consumer: consumer);

@@ -87,9 +87,9 @@ namespace Infrastructure
 
             services.AddSignalR();
             services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
-            services.AddScoped<IHubContextService, HubContextService>();
-            services.AddScoped<INotificationService, NotificationService>();
-            services.AddScoped<INotificationConsumer, NotificationConsumer>();
+            services.AddSingleton<IHubContextService, HubContextService>();
+            services.AddSingleton<INotificationService, NotificationService>();
+            services.AddSingleton<INotificationConsumer, NotificationConsumer>();
 
             return services;
         }

@@ -17,14 +17,17 @@ namespace Infrastructure.Realtime
         private readonly IMediator _mediator;
         private readonly IHubContextService _hubContextService;
         private readonly INotificationService _notificationService;
+        private readonly INotificationStorageService _notificationStorageService;
 
         public VideoCallHub(IMediator mediator, 
             IHubContextService hubContextService,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            INotificationStorageService notificationStorageService)
         {
             _mediator = mediator;
             _hubContextService = hubContextService;
             _notificationService = notificationService;
+            _notificationStorageService = notificationStorageService;
         }
 
         public async Task StartCall(string friendId)
@@ -74,8 +77,26 @@ namespace Infrastructure.Realtime
 
         public override async Task OnConnectedAsync()
         {
-            var userId = Context.UserIdentifier;
+            var userId = Context.GetHttpContext()?.Request.Query["userId"];
+            if (string.IsNullOrEmpty(userId))
+            {
+                Console.WriteLine("No userId provided");
+                Context.Abort(); // Optionally reject the connection if userId is missing
+                return;
+            }
+
+            Console.WriteLine($"Connected userId: {userId}");
+            Console.WriteLine($"ConnectionId: {Context.ConnectionId}");
+
             _hubContextService.AddConnection(userId, Context.ConnectionId);
+            var pendingNotifications = await _notificationStorageService.GetNotificationsAsync(userId);
+            foreach (var notification in pendingNotifications)
+            {
+                await Clients.Caller.SendAsync("ReceiveNotification", notification);
+            }
+
+            // Clear delivered notifications
+            await _notificationStorageService.ClearNotificationsAsync(userId);
             await base.OnConnectedAsync();
         }
 
