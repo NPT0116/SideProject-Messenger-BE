@@ -26,7 +26,11 @@
       placeholder="Enter friend's user ID"
     />
     <button id="startCall">Start Call</button>
-
+    <div id="incomingCallNotification" style="display: none">
+      <p>You have an incoming call!</p>
+      <button id="acceptCallButton">Accept</button>
+      <button id="declineCallButton">Decline</button>
+    </div>
     <script>
       // Generate a unique user ID for each tab
       const userId = Math.random().toString(36).substring(2);
@@ -108,6 +112,73 @@
         await peerConnection.setLocalDescription(offer);
         connection.invoke("SendOffer", newUserId, offer);
         console.log(`Sending SDP offer to ${newUserId}`);
+      });
+
+      // SignalR listener for "UserLeft"
+      connection.on("UserLeft", () => {
+        console.log("The other user has left the call.");
+        stopCall(true); // Pass true to indicate it's the other user who left
+      });
+
+      // Function to stop the call
+      function stopCall(isRemote = false) {
+        console.log("Stopping the call...");
+
+        // 1. Close the PeerConnection
+        if (peerConnection) {
+          peerConnection.close();
+          console.log("PeerConnection closed.");
+        }
+
+        // 2. Stop Local Media Tracks
+        if (localStream) {
+          localStream.getTracks().forEach((track) => {
+            track.stop();
+            console.log(`Stopped local media track: ${track.kind}`);
+          });
+        }
+
+        // 3. Remove Video Elements
+        const localVideo = document.getElementById("localVideo");
+        if (localVideo) localVideo.srcObject = null;
+
+        const remoteVideo = document.getElementById("remoteVideo");
+        if (remoteVideo) remoteVideo.srcObject = null;
+
+        // 4. Remove Incoming Call Notification
+        const callNotification = document.getElementById(
+          "incomingCallNotification"
+        );
+        if (callNotification) {
+          callNotification.style.display = "none"; // Hide the notification
+          console.log("Incoming call notification removed.");
+        }
+
+        // 5. Optionally show alert and redirect
+        if (isRemote) {
+          alert("The other user has left the call.");
+          window.location.href = "/home"; // Redirect to the home screen
+        } else {
+          console.log("You left the call.");
+        }
+      }
+
+      // Event Listener for "Leave Call" Button
+      document
+        .getElementById("leaveCallButton")
+        ?.addEventListener("click", () => {
+          // Notify the other user
+          connection
+            .invoke("LeaveCall", userId)
+            .catch((err) => console.error(err));
+
+          // Stop the call locally
+          stopCall(false); // false indicates the local user is leaving
+        });
+
+      connection.on("CallDeclined", () => {
+        console.log("Your call was declined.");
+        stopCall(); // Clean up local call resources
       });
 
       connection.on("ReceiveIceCandidate", (fromUserId, candidate) => {

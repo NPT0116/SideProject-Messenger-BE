@@ -147,12 +147,12 @@ namespace Infrastructure.Realtime
             await base.OnDisconnectedAsync(exception);
         }
 
-        public async Task LeaveCall(string roomId, string userId)
-        {
-            await _mediator.Send(new LeaveCallCommand(Context.ConnectionId, roomId, userId));
-            await _hubContextService.RemoveFromGroupAsync(Context.ConnectionId, roomId);
-            await _hubContextService.SendToGroupAsync(roomId, "UserLeft", userId);
-        }
+        // public async Task LeaveCall(string roomId, string userId)
+        // {
+        //     await _mediator.Send(new LeaveCallCommand(Context.ConnectionId, roomId, userId));
+        //     await _hubContextService.RemoveFromGroupAsync(Context.ConnectionId, roomId);
+        //     await _hubContextService.SendToGroupAsync(roomId, "UserLeft", userId);
+        // }
 
         public async Task SendOffer(string receiverId, string offer)
         {
@@ -167,6 +167,18 @@ namespace Infrastructure.Realtime
         public async Task SendIceCandidate(string receiverId, string candidate)
         {
             await Clients.User(receiverId).SendAsync("ReceiveIceCandidate", candidate);
+        }
+
+        public async Task LeaveCall(string userId)
+        {
+            // Notify the other user that the call has ended
+            await Clients.Others.SendAsync("UserLeft", userId);
+        }
+
+        public async Task DeclineCall(string callerId)
+        {
+            // Notify the caller that the call was declined
+            await Clients.Client(callerId).SendAsync("CallDeclined");
         }
     }
 }
