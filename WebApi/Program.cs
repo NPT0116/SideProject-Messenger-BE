@@ -72,6 +72,7 @@ builder.Host.UseSerilog((context, loggerConfiguration) =>
 });
 
 builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
 // Add this section to conditionally use appsettings.json for Local environment
 if (builder.Environment.IsEnvironment("Local"))
 {
