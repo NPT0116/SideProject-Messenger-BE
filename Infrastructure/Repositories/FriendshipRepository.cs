@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Domain.Entities;
+using Domain.Enums;
+using Domain.Exceptions.Friendships;
 using Domain.Exceptions.Users;
 using Domain.Repositories;
 using Infrastructure.Identity;
@@ -65,5 +67,24 @@ namespace Infrastructure.Repositories
                 friend.LastName,
                 friend.PasswordHash)).ToList();
         }
+
+        public async Task<Friendship?> GetFriendshipById(Guid friendshipId)
+        {
+            return await _context.Friendships.FindAsync(friendshipId);
+        }
+
+
+        public async Task UpdateFriendshipStatusById(Guid friendshipId, FriendshipStatus status)
+        {
+            var friendship = await _context.Friendships.FindAsync(friendshipId);
+            if(friendship == null)
+            {
+                throw new FriendshipNotFound(friendshipId);
+            }
+
+            friendship.SetFriendshipStatus(status);
+            await _context.SaveChangesAsync();
+        }
+
     }
 }

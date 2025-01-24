@@ -29,5 +29,10 @@ namespace Domain.Entities
         // Navigation Property
         //     public User Initiator { get; private set; } = null!;
         // public User Receiver { get; private set; } = null!;
+
+        public void SetFriendshipStatus(FriendshipStatus status)
+        {
+            Status = status;
+        }
     }
 }
