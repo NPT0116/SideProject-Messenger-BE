@@ -89,6 +89,7 @@ namespace Infrastructure
             services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
             services.AddSingleton<IHubContextService, HubContextService>();
             services.AddSingleton<INotificationService, NotificationService>();
+            services.AddSingleton<INotificationStorageService, InMemoryNotificationStorageService>();
             services.AddSingleton<INotificationConsumer, NotificationConsumer>();
 
             return services;

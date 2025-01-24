@@ -58,20 +58,39 @@ namespace Infrastructure.Realtime
             await _mediator.Send(new JoinCallCommand(Context.ConnectionId, roomId, userId));
             await _hubContextService.AddToGroupAsync(Context.ConnectionId, roomId);
             await _hubContextService.SendToGroupAsync(roomId, "UserJoined", userId);
+            await Clients.Others.SendAsync("UserJoined", userId);
         }
 
         public async Task SendSignal(string roomId, string userId, string signal)
         {
+            Console.WriteLine("Sending signal is called");
             try
             {
+                Console.WriteLine($"SendSignal invoked with roomId: {roomId}, userId: {userId}, signal: {signal}");
+
+                // Log connection details
+                Console.WriteLine($"Context.ConnectionId: {Context.ConnectionId}");
+
+                // Check if the parameters are null or empty
+                if (string.IsNullOrEmpty(roomId) || string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(signal))
+                {
+                    Console.WriteLine("Invalid parameters passed to SendSignal.");
+                    throw new ArgumentException("RoomId, userId, or signal is null or empty.");
+                }
+
+                // Send the signal using mediator
                 await _mediator.Send(new SendSignalCommand(Context.ConnectionId, roomId, userId, signal));
+                Console.WriteLine("Signal sent via mediator.");
+
+                // Notify the group
                 await _hubContextService.SendToGroupAsync(roomId, "ReceiveSignal", Context.ConnectionId, signal);
+                Console.WriteLine("Signal sent to group.");
             }
             catch (Exception ex)
             {
                 // Log the exception
                 Console.WriteLine($"Error in SendSignal: {ex.Message}");
-                throw;
+                throw; // Re-throw the exception to inform the client
             }
         }
 
@@ -89,10 +108,31 @@ namespace Infrastructure.Realtime
             Console.WriteLine($"ConnectionId: {Context.ConnectionId}");
 
             _hubContextService.AddConnection(userId, Context.ConnectionId);
-            var pendingNotifications = await _notificationStorageService.GetNotificationsAsync(userId);
+            var pendingNotifications = await _notificationService.GetNotificationsAsync(userId);
+
+            // Send all pending notifications to the client
+            var connectionId = _hubContextService.GetConnectionId(userId);
             foreach (var notification in pendingNotifications)
             {
-                await Clients.Caller.SendAsync("ReceiveNotification", notification);
+                // Check if the notification is in the "CallStarted" format
+                if (notification.StartsWith("CallStarted:"))
+                {
+                    // Parse callerId and roomId from the notification
+                    var parts = notification.Split(':');
+                    if (parts.Length == 3)
+                    {
+                        var callerId = parts[1];
+                        var roomId = parts[2];
+
+                        // Notify the frontend about the call
+                        await Clients.Client(connectionId).SendAsync("CallStarted", callerId, roomId);
+                    }
+                }
+                else
+                {
+                    // Send other types of notifications
+                    await Clients.Client(connectionId).SendAsync("ReceiveNotification", notification);
+                }
             }
 
             // Clear delivered notifications
@@ -112,6 +152,21 @@ namespace Infrastructure.Realtime
             await _mediator.Send(new LeaveCallCommand(Context.ConnectionId, roomId, userId));
             await _hubContextService.RemoveFromGroupAsync(Context.ConnectionId, roomId);
             await _hubContextService.SendToGroupAsync(roomId, "UserLeft", userId);
+        }
+
+        public async Task SendOffer(string receiverId, string offer)
+        {
+            await Clients.User(receiverId).SendAsync("ReceiveOffer", offer);
+        }
+
+        public async Task SendAnswer(string callerId, string answer)
+        {
+            await Clients.User(callerId).SendAsync("ReceiveAnswer", answer);
+        }
+
+        public async Task SendIceCandidate(string receiverId, string candidate)
+        {
+            await Clients.User(receiverId).SendAsync("ReceiveIceCandidate", candidate);
         }
     }
 }

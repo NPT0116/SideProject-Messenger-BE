@@ -79,21 +79,15 @@
         const peerConnection = new RTCPeerConnection(configuration);
         peerConnections[newUserId] = peerConnection;
 
-        localStream.getTracks().forEach((track) => {
+        localStream?.getTracks()?.forEach((track) => {
           console.log(`Adding track: ${track.kind}`);
           peerConnection.addTrack(track, localStream);
         });
-        console.log("Local Stream Tracks:", localStream.getTracks());
+        console.log("Local Stream Tracks:", localStream?.getTracks());
 
         peerConnection.onicecandidate = (event) => {
           if (event.candidate) {
             console.log(`Sending ICE candidate to ${newUserId}`);
-            connection.invoke(
-              "SendSignal",
-              roomId,
-              newUserId,
-              JSON.stringify({ candidate: event.candidate })
-            );
           }
         };
 
@@ -112,13 +106,32 @@
 
         const offer = await peerConnection.createOffer();
         await peerConnection.setLocalDescription(offer);
+        connection.invoke("SendOffer", newUserId, offer);
         console.log(`Sending SDP offer to ${newUserId}`);
-        connection.invoke(
-          "SendSignal",
-          roomId,
-          newUserId,
-          JSON.stringify({ sdp: peerConnection.localDescription })
+      });
+
+      connection.on("ReceiveIceCandidate", (fromUserId, candidate) => {
+        const peerConnection = peerConnections[fromUserId];
+        if (peerConnection) {
+          peerConnection
+            .addIceCandidate(new RTCIceCandidate(candidate))
+            .then(() => {
+              console.log(`Added ICE candidate from ${fromUserId}`);
+            })
+            .catch((err) => {
+              console.error(`Failed to add ICE candidate: ${err}`);
+            });
+        }
+      });
+
+      connection.on("ReceiveAnswer", async (answer) => {
+        console.log(`Received answer from callee`);
+
+        // Set the remote description (answer) for the caller
+        await peerConnection.setRemoteDescription(
+          new RTCSessionDescription(answer)
         );
+        console.log("Remote description set with answer");
       });
 
       connection.on("ReceiveSignal", async (newUserId, signal) => {
@@ -221,10 +234,11 @@
 
           // Change the button text to "Join Call"
           startCallButton.textContent = "Join Call";
-        }
+        } else joinCall(roomId);
       };
 
       async function joinCall(roomId) {
+        console.log("Join call is called");
         // Notify others that you have joined the call
         connection.invoke("JoinCall", roomId, userId);
 
@@ -232,20 +246,15 @@
         for (const newUserId in peerConnections) {
           const peerConnection = peerConnections[newUserId];
 
-          localStream.getTracks().forEach((track) => {
+          localStream?.getTracks()?.forEach((track) => {
             console.log(`Adding track to existing connection: ${track.kind}`);
             peerConnection.addTrack(track, localStream);
           });
 
           const offer = await peerConnection.createOffer();
           await peerConnection.setLocalDescription(offer);
+          connection.invoke("SendOffer", newUserId, offer);
           console.log(`Sending SDP offer to ${newUserId}`);
-          connection.invoke(
-            "SendSignal",
-            roomId,
-            newUserId,
-            JSON.stringify({ sdp: peerConnection.localDescription })
-          );
         }
       }
     </script>
