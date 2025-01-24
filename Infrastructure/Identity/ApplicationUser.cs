@@ -20,7 +20,7 @@ namespace Infrastructure.Identity
         public string LastName { get; private set; }
         public DateTime LastSeen { get;  set; }
         public bool IsOnline { get;  set; }
-        public Guid ProfilePictureId { get;  set; }
+        public Guid? ProfilePictureId { get;  set; }
         public ICollection<Friendship> FriendshipsInitiated { get; private set; } = new List<Friendship>();
         public ICollection<Friendship> FriendshipsReceived { get; private set; } = new List<Friendship>();
         public IReadOnlyCollection<Participant> Participants { get; private set; }

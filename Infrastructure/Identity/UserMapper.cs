@@ -20,7 +20,7 @@ public static class UserMapper
     {
         LastSeen = applicationUser.LastSeen,
         IsOnline = applicationUser.IsOnline,
-        ProfilePictureId = applicationUser.ProfilePictureId
+        ProfilePictureId = applicationUser.ProfilePictureId ?? null
     };
     return domainUser;
 }
