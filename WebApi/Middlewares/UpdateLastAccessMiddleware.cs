@@ -1,38 +1,51 @@
 using System;
-
-using System;
+using System.Threading.Tasks;
 using Domain;
 using Domain.Repositories;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
-namespace WebApi.Middlewares;
-
-public class UpdateLastAccessMiddleware
+namespace WebApi.Middlewares
 {
-    private readonly RequestDelegate _next;
-
-    public UpdateLastAccessMiddleware(RequestDelegate next)
+    public class UpdateLastAccessMiddleware
     {
-        _next = next;
-    }
+        private readonly RequestDelegate _next;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IDistributedCache _cache;
 
-    public async Task InvokeAsync(HttpContext context, IUserRepository userRepository, ITokenService tokenService)
-    {
-        // Lấy thông tin user từ request (ví dụ: từ token hoặc session)
-        var userId = tokenService.GetUserIdFromToken(context.Request.Headers["Authorization"].ToString().Replace("Bearer ", ""));
-        Log.Information("Middleware update last access activate", userId);
-
-        if (userId.HasValue)
+        public UpdateLastAccessMiddleware(RequestDelegate next, IServiceProvider serviceProvider, IDistributedCache cache)
         {
-            var user = await  userRepository.GetUserByIdAsync(userId.Value);
-            if (user != null)
-            {
-                user.LastSeen = DateTime.UtcNow;
-                await userRepository.UpdateUserAsync(user);
-            }
-            Log.Information("User {UserId} last seen updated", userId);
+            _next = next;
+            _serviceProvider = serviceProvider;
+            _cache = cache;
         }
 
-        await _next(context); // Chuyển request đến middleware tiếp theo
+        public async Task InvokeAsync(HttpContext context, ITokenService tokenService)
+        {
+            var authorizationHeader = context.Request.Headers["Authorization"].ToString();
+
+            if (!string.IsNullOrEmpty(authorizationHeader) && authorizationHeader.StartsWith("Bearer "))
+            {
+                var token = authorizationHeader.Replace("Bearer ", "");
+                var userId = tokenService.GetUserIdFromToken(token);
+
+                if (userId.HasValue)
+                {
+                    Log.Information("Middleware update last access activated for user {UserId}", userId);
+
+                    var cacheKey = $"LastSeen_{userId.Value}";
+                    var lastSeen = DateTime.UtcNow;
+
+                    // Store the last seen time in Redis
+                    await _cache.SetStringAsync(cacheKey, lastSeen.ToString("o"));
+
+                    Log.Information("User {UserId} last seen updated in cache", userId);
+                }
+            }
+
+            await _next(context); // Pass the request to the next middleware
+        }
     }
 }

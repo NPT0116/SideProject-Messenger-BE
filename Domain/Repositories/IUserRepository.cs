@@ -15,7 +15,9 @@ namespace Domain.Repositories
         public Task<User> CreateUserAsync(User user);
         public Task<User> UpdateUserAsync(User user);
         public void DeleteUser(Guid id);
+        public  Task<bool> ExistsAsync(Guid userId);
 
+        public Task<User> GetUserFromParticipantId(Guid participantId);
         public Task<bool> checkPasswordAsync (User user, string password);
     }
 }

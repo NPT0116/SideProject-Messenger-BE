@@ -21,6 +21,8 @@ public class LoginUserCommandHandler: IRequestHandler<LoginUserCommand, Response
     public async Task<Response<LoginUserResponseDto>> Handle(LoginUserCommand request, CancellationToken cancellationToken)
     {
         var user = await _userRepository.GetUserByUsernameAsync(request.LoginRequest.UserName);
+        Console.WriteLine("Username: " + request.LoginRequest.UserName);
+        Console.WriteLine("Password: " + request.LoginRequest.Password);
         if (user == null)
         {
             throw new UserNotFound("Invalid username or password");

@@ -3,6 +3,7 @@ using System.Text;
 using Application.Data;
 using Domain;
 using Domain.Repositories;
+using Domain.Services;
 using Infrastructure.Identity;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
@@ -13,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Infrastructure
@@ -23,8 +25,11 @@ namespace Infrastructure
             this IServiceCollection services,
             IConfiguration configuration)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+        services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
+           .EnableSensitiveDataLogging());
+
+
 
             services.AddScoped<IApplicationDbContext>(sp =>
                 sp.GetRequiredService<ApplicationDbContext>());
@@ -67,9 +72,14 @@ namespace Infrastructure
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IFriendshipRepository, FriendshipRepository>();
+            services.AddScoped<IAttachmentRepository, AttachmentRepository>();
+            services.AddScoped<IChatRepository, ChatRepository>();
+            services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<IParticipantRepository, ParticipantRepository>();
 
             // Register TokenService
             services.AddScoped<ITokenService, TokenService>();
+            services.AddScoped<IFileUploadService, FileUploadService >();
             services.AddHostedService<MigrationService>();
 
             return services;

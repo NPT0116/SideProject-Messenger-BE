@@ -1,6 +1,7 @@
 using Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Infrastructure.Identity
 {
@@ -23,6 +24,10 @@ namespace Infrastructure.Identity
         public ICollection<Friendship> FriendshipsInitiated { get; private set; } = new List<Friendship>();
         public ICollection<Friendship> FriendshipsReceived { get; private set; } = new List<Friendship>();
         public IReadOnlyCollection<Participant> Participants { get; private set; }
+
+
+        // [Timestamp]
+        // public byte[] RowVersion { get; set; }
 
     }
 }
