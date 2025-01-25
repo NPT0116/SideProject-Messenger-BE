@@ -33,7 +33,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<User>> GetFriendList(Guid userId)
+        public async Task<List<User>> GetFriendList(Guid userId, FriendshipStatus? status)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             if(user == null)
@@ -42,7 +42,7 @@ namespace Infrastructure.Repositories
             }        
 
             var friendsInitiated = _context.Friendships
-                .Where(f => f.InitiatorId == userId.ToString())
+                .Where(f => f.InitiatorId == userId.ToString() && (status == null || f.Status == status))
                 .Join(
                     _context.Users,
                     friendship => friendship.ReceiverId,
@@ -50,7 +50,7 @@ namespace Infrastructure.Repositories
                     (friendship, user) => user);
 
             var friendsReceived = _context.Friendships
-                .Where(f => f.ReceiverId == userId.ToString())
+                .Where(f => f.ReceiverId == userId.ToString() && (status == null || f.Status == status))
                 .Join(
                     _context.Users,
                     friendship => friendship.InitiatorId,

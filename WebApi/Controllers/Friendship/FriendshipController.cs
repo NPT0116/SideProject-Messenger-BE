@@ -2,8 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Features.Friendship.AcceptFriendshipInvitation;
 using Application.Features.Friendship.GetFriendList;
+using Application.Features.Friendship.RejectFriendshipInvitation;
 using Application.Features.Friendship.SendFriendshipInvitation;
+using Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,10 +22,12 @@ namespace WebApi.Controllers.Friendship
             _mediator = mediator;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetFriendList([FromQuery] Guid userId)
+        [HttpGet("friendList")]
+        public async Task<IActionResult> GetFriendList(
+            [FromQuery] Guid userId,
+            [FromQuery] FriendshipStatus status)
         {
-            var user = await _mediator.Send(new GetFriendListQuery(userId));
+            var user = await _mediator.Send(new GetFriendListQuery(userId, status));
             return Ok(user);
         }
 
@@ -34,6 +39,22 @@ namespace WebApi.Controllers.Friendship
             var createFriendshipDto = new CreateFriendshipDto(initiatorId, receiverId);
             var result = await _mediator.Send(new SendFriendshipInvitationCommand(createFriendshipDto));
             return Created();
+        }
+
+        [HttpPatch("reject")]
+        public async Task<IActionResult> RejectFriendshipInvitation(
+            [FromQuery] Guid friendshipId)
+        {
+            await _mediator.Send(new RejectFriendshipInvitationCommand(friendshipId));
+            return Ok();
+        }
+
+        [HttpPatch("approve")]
+        public async Task<IActionResult> ApproveFriendshipInvitation(
+            [FromQuery] Guid friendshipId)
+        {
+            await _mediator.Send(new AcceptFriendshipInvitationCommand(friendshipId));
+            return Ok();
         }
     }
 }

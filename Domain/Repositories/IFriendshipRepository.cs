@@ -9,7 +9,7 @@ namespace Domain.Repositories
 {
     public interface IFriendshipRepository
     {
-        Task<List<User>> GetFriendList(Guid userId);
+        Task<List<User>> GetFriendList(Guid userId, FriendshipStatus? status);
         Task UpdateFriendshipStatusById(Guid friendshipId, FriendshipStatus status);
         Task<Friendship?> GetFriendshipById(Guid friendshipId);
         Task CreateFriendship(Guid initiatorId, Guid receiverId);
