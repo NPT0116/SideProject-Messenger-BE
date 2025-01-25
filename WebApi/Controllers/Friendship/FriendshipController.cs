@@ -22,12 +22,21 @@ namespace WebApi.Controllers.Friendship
             _mediator = mediator;
         }
 
-        [HttpGet("friendList")]
-        public async Task<IActionResult> GetFriendList(
+        [HttpGet("initiated")]
+        public async Task<IActionResult> GetInitiatedFriendList(
             [FromQuery] Guid userId,
             [FromQuery] FriendshipStatus status)
         {
-            var user = await _mediator.Send(new GetFriendListQuery(userId, status));
+            var user = await _mediator.Send(new GetFriendListQuery(userId, status, true));
+            return Ok(user);
+        }
+
+        [HttpGet("received")]
+        public async Task<IActionResult> GetReceivedFriendList(
+            [FromQuery] Guid userId,
+            [FromQuery] FriendshipStatus status)
+        {
+            var user = await _mediator.Send(new GetFriendListQuery(userId, status, false));
             return Ok(user);
         }
 

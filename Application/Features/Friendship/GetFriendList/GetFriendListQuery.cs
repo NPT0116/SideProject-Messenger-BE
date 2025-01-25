@@ -8,7 +8,7 @@ using MediatR;
 
 namespace Application.Features.Friendship.GetFriendList;
 
-public record GetFriendListQuery(Guid userId, FriendshipStatus? status) : IRequest<GetFriendListQueryResponse>;
+public record GetFriendListQuery(Guid userId, FriendshipStatus? status, bool IsInitiated) : IRequest<GetFriendListQueryResponse>;
 
 public record GetFriendListQueryResponse(List<FriendshipResponseDto> friends);
 

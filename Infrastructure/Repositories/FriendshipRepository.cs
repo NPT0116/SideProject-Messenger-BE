@@ -35,54 +35,6 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<FriendshipResponseDto>> GetFriendList(Guid userId, FriendshipStatus? status)
-        {
-            var user = await _userRepository.GetUserByIdAsync(userId);
-            if(user == null)
-            {
-                throw new UserNotFound(userId); 
-            }        
-
-            var friendsInitiated = await _context.Friendships
-                .Where(f => f.InitiatorId == userId.ToString() && (status == null || f.Status == status))
-                .Select(f => new
-                {
-                    Friendship = f,
-                    User = UserMapper.ToApplicationUser(user)
-                }).ToListAsync();
-                // .Join(
-                //     _context.Users,
-                //     friendship => friendship.ReceiverId,
-                //     user => user.Id,
-                //     (friendship) => new
-                //     {
-                //         Friendship = friendship,
-                //         User = user
-                //     });
-
-            var friendsReceived = await _context.Friendships
-                .Where(f => f.ReceiverId == userId.ToString() && (status == null || f.Status == status))
-                .Join(
-                    _context.Users,
-                    friendship => friendship.InitiatorId,
-                    user => user.Id,
-                    (friendship, user) => new
-                    {
-                        Friendship = friendship,
-                        User = user
-                    })
-                .ToListAsync();
-
-            var friends = friendsInitiated.Concat(friendsReceived);
-            var friendshipList = friends.Select(fr => new
-            {
-                Friendship = fr.Friendship,
-                User = UserMapper.ToDomainUser(fr.User)
-            }).ToList();
-
-            return friendshipList.Select(friend => new FriendshipResponseDto(friend.Friendship, friend.User)).ToList();
-        }
-
         public async Task<Friendship?> GetFriendshipBetweenTwoUsersByIds(Guid initiatorId, Guid receiverId)
         {
             return await _context.Friendships.FirstOrDefaultAsync(fr =>
@@ -97,6 +49,49 @@ namespace Infrastructure.Repositories
             return await _context.Friendships.FindAsync(friendshipId);
         }
 
+        public async Task<List<FriendshipResponseDto>> GetInitiatedFriendList(Guid userId, FriendshipStatus? status)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if(user == null)
+            {
+                throw new UserNotFound(userId); 
+            }        
+
+            var friendsInitiated = await _context.Friendships
+                .Where(f => f.InitiatorId == userId.ToString() && (status == null || f.Status == status))
+                .Select(f => new
+                {
+                    Friendship = f,
+                    User = UserMapper.ToApplicationUser(user)
+                }).ToListAsync();
+
+            return friendsInitiated.Select(friend => new FriendshipResponseDto(friend.Friendship, UserMapper.ToDomainUser(friend.User))).ToList();
+        }
+
+        public async Task<List<FriendshipResponseDto>> GetReceivedFriendList(Guid userId, FriendshipStatus? status)
+        {
+            var user = await _userRepository.GetUserByIdAsync(userId);
+            if(user == null)
+            {
+                throw new UserNotFound(userId); 
+            }
+
+            var friendsReceived = await _context.Friendships
+                .Where(f => f.ReceiverId == userId.ToString() && (status == null || f.Status == status))
+                .Join(
+                    _context.Users,
+                    friendship => friendship.InitiatorId,
+                    user => user.Id,
+                    (friendship, user) => new
+                    {
+                        Friendship = friendship,
+                        User = user
+                    })
+                .ToListAsync();
+
+            return friendsReceived.Select(friend => new FriendshipResponseDto(friend.Friendship, UserMapper.ToDomainUser(friend.User))).ToList();
+               
+        }
 
         public async Task UpdateFriendshipStatusById(Guid friendshipId, FriendshipStatus status)
         {
