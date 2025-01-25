@@ -105,14 +105,16 @@ if (builder.Environment.IsEnvironment("Local"))
 
 // Register the background service
 builder.Services.AddHostedService<LastSeenSyncService>();
-// Add cors
+
+// Add CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("http://localhost:3000") // Replace with your client URL
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
@@ -121,12 +123,6 @@ Log.Information("Using connection string: {ConnectionString}", connectionString)
 
 var app = builder.Build();
 app.UseCors("AllowAll");
-// using (var scope = app.Services.CreateScope())
-// {
-//     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-//     //await context.Database.MigrateAsync();
-//     await DatabaseSeed.SeedData(context);
-// }
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
