@@ -43,19 +43,24 @@ namespace Infrastructure.Repositories
                 throw new UserNotFound(userId); 
             }        
 
-            var friendsInitiated = _context.Friendships
+            var friendsInitiated = await _context.Friendships
                 .Where(f => f.InitiatorId == userId.ToString() && (status == null || f.Status == status))
-                .Join(
-                    _context.Users,
-                    friendship => friendship.ReceiverId,
-                    user => user.Id,
-                    (friendship, user) => new
-                    {
-                        Friendship = friendship,
-                        User = user
-                    });
+                .Select(f => new
+                {
+                    Friendship = f,
+                    User = UserMapper.ToApplicationUser(user)
+                }).ToListAsync();
+                // .Join(
+                //     _context.Users,
+                //     friendship => friendship.ReceiverId,
+                //     user => user.Id,
+                //     (friendship) => new
+                //     {
+                //         Friendship = friendship,
+                //         User = user
+                //     });
 
-            var friendsReceived = _context.Friendships
+            var friendsReceived = await _context.Friendships
                 .Where(f => f.ReceiverId == userId.ToString() && (status == null || f.Status == status))
                 .Join(
                     _context.Users,
@@ -65,9 +70,10 @@ namespace Infrastructure.Repositories
                     {
                         Friendship = friendship,
                         User = user
-                    });
+                    })
+                .ToListAsync();
 
-            var friends = await friendsInitiated.Union(friendsReceived).ToListAsync();
+            var friends = friendsInitiated.Concat(friendsReceived);
             var friendshipList = friends.Select(fr => new
             {
                 Friendship = fr.Friendship,
