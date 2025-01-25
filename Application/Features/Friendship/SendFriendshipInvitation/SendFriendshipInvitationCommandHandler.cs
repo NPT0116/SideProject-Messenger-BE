@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Domain.Enums;
 using Domain.Exceptions.Friendships;
 using Domain.Exceptions.Users;
 using Domain.Repositories;
@@ -37,10 +38,9 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
                 throw new UserNotFound(receiverId);
             }
 
-            var friendList = await _friendshipRepository.GetFriendList(initiatorId, null);
-            var friendListIds = friendList.Select(fr => fr.Initiator.Id).ToList();
+            var friendship = await _friendshipRepository.GetFriendshipBetweenTwoUsersByIds(initiatorId, receiverId);
 
-            if(friendListIds.Any() && friendListIds.Contains(receiverId))
+            if(friendship != null && friendship.Status == FriendshipStatus.Rejected)
             {
                 throw new HasAlreadyBeenFriend(initiatorId, receiverId);
             }

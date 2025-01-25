@@ -83,6 +83,15 @@ namespace Infrastructure.Repositories
             return friendshipList.Select(friend => new FriendshipResponseDto(friend.Friendship, friend.User)).ToList();
         }
 
+        public async Task<Friendship?> GetFriendshipBetweenTwoUsersByIds(Guid initiatorId, Guid receiverId)
+        {
+            return await _context.Friendships.FirstOrDefaultAsync(fr =>
+                (fr.InitiatorId == initiatorId.ToString() && fr.ReceiverId == receiverId.ToString()) ||
+                (fr.InitiatorId == receiverId.ToString() && fr.ReceiverId == initiatorId.ToString())
+            );
+        }
+
+
         public async Task<Friendship?> GetFriendshipById(Guid friendshipId)
         {
             return await _context.Friendships.FindAsync(friendshipId);

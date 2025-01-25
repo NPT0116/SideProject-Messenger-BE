@@ -14,5 +14,6 @@ namespace Domain.Repositories
         Task UpdateFriendshipStatusById(Guid friendshipId, FriendshipStatus status);
         Task<Friendship?> GetFriendshipById(Guid friendshipId);
         Task CreateFriendship(Guid initiatorId, Guid receiverId);
+        Task<Friendship?> GetFriendshipBetweenTwoUsersByIds(Guid initiatorId, Guid receiverId);
     }
 }
