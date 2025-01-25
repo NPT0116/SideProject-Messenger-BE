@@ -38,7 +38,7 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
             }
 
             var friendList = await _friendshipRepository.GetFriendList(initiatorId, null);
-            var friendListIds = friendList.Select(fr => fr.Id).ToList();
+            var friendListIds = friendList.Select(fr => fr.Initiator.Id).ToList();
 
             if(friendListIds.Any() && friendListIds.Contains(receiverId))
             {

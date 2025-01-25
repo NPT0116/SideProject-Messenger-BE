@@ -18,10 +18,8 @@ namespace Application.Features.Friendship.GetFriendList
         public async Task<GetFriendListQueryResponse> Handle(GetFriendListQuery request, CancellationToken cancellationToken)
         {
             var friends = await _friendshipRepository.GetFriendList(request.userId, request.status);
-            var friendDtos = friends.Select(fr => new Friend(fr.Id, fr.UserName, fr.FirstName, fr.LastName, fr.ProfilePictureId)
-            ).ToList();
-
-            return new GetFriendListQueryResponse(friendDtos);
+            
+            return new GetFriendListQueryResponse(friends);
         }
     }
 }

@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Application.Features.Friendship.GetFriendList;
+using Domain.Dtos.Friendship;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions.Friendships;
@@ -33,7 +35,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<User>> GetFriendList(Guid userId, FriendshipStatus? status)
+        public async Task<List<FriendshipResponseDto>> GetFriendList(Guid userId, FriendshipStatus? status)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             if(user == null)
@@ -47,7 +49,11 @@ namespace Infrastructure.Repositories
                     _context.Users,
                     friendship => friendship.ReceiverId,
                     user => user.Id,
-                    (friendship, user) => user);
+                    (friendship, user) => new
+                    {
+                        Friendship = friendship,
+                        User = user
+                    });
 
             var friendsReceived = _context.Friendships
                 .Where(f => f.ReceiverId == userId.ToString() && (status == null || f.Status == status))
@@ -55,17 +61,20 @@ namespace Infrastructure.Repositories
                     _context.Users,
                     friendship => friendship.InitiatorId,
                     user => user.Id,
-                    (friendship, user) => user);
-
+                    (friendship, user) => new
+                    {
+                        Friendship = friendship,
+                        User = user
+                    });
 
             var friends = await friendsInitiated.Union(friendsReceived).ToListAsync();
+            var friendshipList = friends.Select(fr => new
+            {
+                Friendship = fr.Friendship,
+                User = UserMapper.ToDomainUser(fr.User)
+            }).ToList();
 
-            return friends.Select(friend => new User(
-                Guid.Parse(friend.Id),
-                friend.UserName,
-                friend.FirstName,
-                friend.LastName,
-                friend.PasswordHash)).ToList();
+            return friendshipList.Select(friend => new FriendshipResponseDto(friend.Friendship, friend.User)).ToList();
         }
 
         public async Task<Friendship?> GetFriendshipById(Guid friendshipId)
