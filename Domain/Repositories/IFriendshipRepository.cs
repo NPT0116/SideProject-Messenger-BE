@@ -12,6 +12,7 @@ namespace Domain.Repositories
     {
         Task<List<FriendshipResponseDto>> GetInitiatedFriendList(Guid userId, FriendshipStatus? status);
         Task<List<FriendshipResponseDto>> GetReceivedFriendList(Guid userId, FriendshipStatus? status);
+        Task<List<FriendshipResponseDto>> GetFriendList(Guid userId, FriendshipStatus? status);
         Task UpdateFriendshipStatusById(Guid friendshipId, FriendshipStatus status);
         Task<Friendship?> GetFriendshipById(Guid friendshipId);
         Task CreateFriendship(Guid initiatorId, Guid receiverId);

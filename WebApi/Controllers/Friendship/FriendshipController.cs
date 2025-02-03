@@ -27,7 +27,7 @@ namespace WebApi.Controllers.Friendship
             [FromQuery] Guid userId,
             [FromQuery] FriendshipStatus status)
         {
-            var user = await _mediator.Send(new GetFriendListQuery(userId, status, true));
+            var user = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Initiated));
             return Ok(user);
         }
 
@@ -36,7 +36,16 @@ namespace WebApi.Controllers.Friendship
             [FromQuery] Guid userId,
             [FromQuery] FriendshipStatus status)
         {
-            var user = await _mediator.Send(new GetFriendListQuery(userId, status, false));
+            var user = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Received));
+            return Ok(user);
+        }
+
+        [HttpGet("friendlist")]
+        public async Task<IActionResult> GetFriendList(
+            [FromQuery] Guid userId,
+            [FromQuery] FriendshipStatus status)
+        {
+            var user = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Both));
             return Ok(user);
         }
 
