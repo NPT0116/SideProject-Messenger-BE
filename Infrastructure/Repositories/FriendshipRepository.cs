@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Application.Features.Friendship.GetFriendList;
 using Domain.Dtos.Friendship;
+using Domain.Dtos.Shared;
 using Domain.Entities;
 using Domain.Enums;
 using Domain.Exceptions.Friendships;
@@ -35,7 +36,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<FriendshipResponseDto>> GetFriendList(Guid userId, FriendshipStatus? status)
+        public async Task<PageResponseDto<FriendshipListResponseDto>> GetFriendList(Guid userId, FriendshipStatus? status, int pageNumber, int pageSize)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             if(user == null)
@@ -43,41 +44,53 @@ namespace Infrastructure.Repositories
                 throw new UserNotFound(userId); 
             }     
 
-            var friendships = _context.Friendships
-            .Where(f => f.InitiatorId == userId.ToString() && (status == null || f.Status == status))
-            .Join(
-                    _context.Users,
-                    friendship => friendship.ReceiverId,
-                    user => user.Id,
-                    (friendship, receiver) => new
-                    {
-                        Friendship = friendship,
-                        Receiver = UserMapper.ToDomainUser(receiver),
-                        Initiator = user
-                    }
-                )
-            .ToList()
-            .Union(
-                _context.Friendships
+            var initiatedFriendshipsQuery = _context.Friendships
+                .Where(f => f.InitiatorId == userId.ToString() && (status == null || f.Status == status))
+                .Select(f => new
+                {
+                    f,
+                    ReceiverId = f.ReceiverId,
+                    InitiatorId = f.InitiatorId
+                });
+
+            var receivedFriendshipsQuery = _context.Friendships
                 .Where(f => f.ReceiverId == userId.ToString() && (status == null || f.Status == status))
-                .Join(
-                    _context.Users,
-                    friendship => friendship.InitiatorId,
-                    user => user.Id,
-                    (friendship, initiator) => new
-                    {
-                        Friendship = friendship,
-                        Receiver = user,
-                        Initiator = UserMapper.ToDomainUser(initiator),
-                    }
-                ).ToList());
+                .Select(f => new
+                {
+                    f,
+                    ReceiverId = f.ReceiverId,
+                    InitiatorId = f.InitiatorId
+                });
 
+            // ✅ Perform Union before applying transformations
+            var friendshipsQuery = initiatedFriendshipsQuery.Union(receivedFriendshipsQuery).AsQueryable();
+            
+            // 🔹 Apply pagination BEFORE fetching data
+            var totalRecords = await friendshipsQuery.CountAsync();
+            var friendships = await friendshipsQuery
+                .OrderBy(f => f.f.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
+            // ✅ Apply `UserMapper.ToDomainUser` AFTER fetching data
+            var transformedFriendships = friendships.Select(friend => new FriendshipListResponseDto
+            (
+                friend.f,
+                UserMapper.ToDomainUser(_context.Users.FirstOrDefault(u => u.Id == friend.InitiatorId)),
+                UserMapper.ToDomainUser(_context.Users.FirstOrDefault(u => u.Id == friend.ReceiverId))
+            )).ToList();
 
-            return friendships.Select(friend => new FriendshipResponseDto(
-                friend.Friendship, 
-                friend.Initiator,
-                friend.Receiver)).ToList();
+            // ✅ Return paginated response
+            return new PageResponseDto<FriendshipListResponseDto>
+            {
+                Data = transformedFriendships,
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)pageSize)
+            };
+
         }
 
 
@@ -95,7 +108,7 @@ namespace Infrastructure.Repositories
             return await _context.Friendships.FindAsync(friendshipId);
         }
 
-        public async Task<List<FriendshipResponseDto>> GetInitiatedFriendList(Guid userId, FriendshipStatus? status)
+        public async Task<PageResponseDto<FriendshipListResponseDto>> GetInitiatedFriendList(Guid userId, FriendshipStatus? status, int pageNumber, int pageSize)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             if(user == null)
@@ -105,7 +118,7 @@ namespace Infrastructure.Repositories
 
             var applicationUser = UserMapper.ToApplicationUser(user);
 
-            var friendsInitiated = await _context.Friendships
+            var friendsInitiated = _context.Friendships
                 .Where(f => f.InitiatorId == userId.ToString() && (status == null || f.Status == status))
                 .Join(_context.Users,
                     friendship => friendship.ReceiverId,
@@ -120,15 +133,30 @@ namespace Infrastructure.Repositories
                     f.Friendship,
                     Initiator = applicationUser,
                     Receiver = f.User
-                }).ToListAsync();
+                }).AsQueryable();
 
-            return friendsInitiated.Select(friend => new FriendshipResponseDto(
-                friend.Friendship, 
-                UserMapper.ToDomainUser(friend.Initiator),
-                UserMapper.ToDomainUser(friend.Receiver))).ToList();
+            var totalRecords = await friendsInitiated.CountAsync();
+
+            var friendships = await friendsInitiated
+                .OrderBy(f => f.Friendship.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PageResponseDto<FriendshipListResponseDto>
+            {
+                Data = friendships.Select(friend => new FriendshipListResponseDto(
+                    friend.Friendship, 
+                    UserMapper.ToDomainUser(friend.Initiator),
+                    UserMapper.ToDomainUser(friend.Receiver))).ToList(),
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)pageSize)
+            };
         }
 
-        public async Task<List<FriendshipResponseDto>> GetReceivedFriendList(Guid userId, FriendshipStatus? status)
+        public async Task<PageResponseDto<FriendshipListResponseDto>> GetReceivedFriendList(Guid userId, FriendshipStatus? status, int pageNumber, int pageSize)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             if(user == null)
@@ -136,7 +164,7 @@ namespace Infrastructure.Repositories
                 throw new UserNotFound(userId); 
             }
 
-            var friendsReceived = await _context.Friendships
+            var friendsReceived = _context.Friendships
                 .Where(f => f.ReceiverId == userId.ToString() && (status == null || f.Status == status))
                 .Join(
                     _context.Users,
@@ -148,12 +176,22 @@ namespace Infrastructure.Repositories
                         Receiver = user,
                         Initiator = initiator
                     })
-                .ToListAsync();
+                .AsQueryable();
 
-            return friendsReceived.Select(friend => new FriendshipResponseDto(
-                friend.Friendship, 
-                UserMapper.ToDomainUser(friend.Initiator),
-                friend.Receiver)).ToList();
+            var totalRecords = await friendsReceived.CountAsync();
+            var friendships = await friendsReceived.ToListAsync();
+
+            return new PageResponseDto<FriendshipListResponseDto>
+            {
+                Data = friendships.Select(friend => new FriendshipListResponseDto(
+                    friend.Friendship, 
+                    UserMapper.ToDomainUser(friend.Initiator),
+                    friend.Receiver)).ToList(),
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = (int)Math.Ceiling(totalRecords / (double)pageSize)
+            };
                
         }
 

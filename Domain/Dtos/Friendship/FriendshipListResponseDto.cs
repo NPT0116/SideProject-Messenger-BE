@@ -6,13 +6,17 @@ using Domain.Entities;
 
 namespace Domain.Dtos.Friendship
 {
-    public class FriendshipResponseDto
+    public class FriendshipListResponseDto
     {
-        public FriendshipResponseDto(Entities.Friendship friendship, User initiator, User receiver)
+        public FriendshipListResponseDto(
+            Entities.Friendship friendship, 
+            User initiator, 
+            User receiver)
         {
             Friendship = friendship;
             Initiator = initiator;
             Receiver = receiver;
+
         }
         public Entities.Friendship Friendship { get; set; }
         public User Initiator { get; set; }

@@ -10,7 +10,7 @@ using MediatR;
 
 namespace Application.Features.Friendship.SendFriendshipInvitation
 {
-    public class SendFriendshipInvitationCommandHandler : IRequestHandler<SendFriendshipInvitationCommand, CreateFriendshipResponseDto>
+    public class SendFriendshipInvitationCommandHandler : IRequestHandler<SendFriendshipInvitationCommand, CreateFriendshipListResponseDto>
     {
         private IFriendshipRepository _friendshipRepository;
         private IUserRepository _userRepository;
@@ -21,7 +21,7 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
             _friendshipRepository = friendshipRepository;
             _userRepository = userRepository;
         }
-        public async Task<CreateFriendshipResponseDto> Handle(SendFriendshipInvitationCommand command, CancellationToken cancellationToken)
+        public async Task<CreateFriendshipListResponseDto> Handle(SendFriendshipInvitationCommand command, CancellationToken cancellationToken)
         {
             var initiatorId = command.request.initiatorId;
             var receiverId = command.request.receiverId;
@@ -47,7 +47,7 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
 
             await _friendshipRepository.CreateFriendship(initiatorId, receiverId);
 
-            return new CreateFriendshipResponseDto(initiatorId, receiverId);
+            return new CreateFriendshipListResponseDto(initiatorId, receiverId);
         }
     }
 }

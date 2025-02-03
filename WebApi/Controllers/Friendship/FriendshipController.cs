@@ -6,7 +6,9 @@ using Application.Features.Friendship.AcceptFriendshipInvitation;
 using Application.Features.Friendship.GetFriendList;
 using Application.Features.Friendship.RejectFriendshipInvitation;
 using Application.Features.Friendship.SendFriendshipInvitation;
+using Domain.Constants;
 using Domain.Enums;
+using Domain.Utils;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,28 +27,34 @@ namespace WebApi.Controllers.Friendship
         [HttpGet("initiated")]
         public async Task<IActionResult> GetInitiatedFriendList(
             [FromQuery] Guid userId,
-            [FromQuery] FriendshipStatus status)
+            [FromQuery] FriendshipStatus status,
+            [FromQuery] int pageNumber = Pagination.DefaultPageNumber,
+            [FromQuery] int pageSize = Pagination.DefaultPageSize)
         {
-            var user = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Initiated));
-            return Ok(user);
+            var response = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Initiated, pageNumber, pageSize));
+            return Ok(new PagedResponse<List<FriendshipDto>>(response.response.Data, response.response.PageNumber, response.response.PageSize,response.response.TotalPages, response.response.TotalRecords));
         }
 
         [HttpGet("received")]
         public async Task<IActionResult> GetReceivedFriendList(
             [FromQuery] Guid userId,
-            [FromQuery] FriendshipStatus status)
+            [FromQuery] FriendshipStatus status,
+            [FromQuery] int pageNumber = Pagination.DefaultPageNumber,
+            [FromQuery] int pageSize = Pagination.DefaultPageSize)
         {
-            var user = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Received));
-            return Ok(user);
+            var response = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Received, pageNumber, pageSize));
+            return Ok(new PagedResponse<List<FriendshipDto>>(response.response.Data, response.response.PageNumber, response.response.PageSize,response.response.TotalPages, response.response.TotalRecords));
         }
 
         [HttpGet("friendlist")]
         public async Task<IActionResult> GetFriendList(
             [FromQuery] Guid userId,
-            [FromQuery] FriendshipStatus status)
+            [FromQuery] FriendshipStatus status,
+            [FromQuery] int pageNumber = Pagination.DefaultPageNumber,
+            [FromQuery] int pageSize = Pagination.DefaultPageSize)
         {
-            var user = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Both));
-            return Ok(user);
+            var response = await _mediator.Send(new GetFriendListQuery(userId, status, FriendshipFilter.Both, pageNumber, pageSize));
+            return Ok(new PagedResponse<List<FriendshipDto>>(response.response.Data, response.response.PageNumber, response.response.PageSize,response.response.TotalPages, response.response.TotalRecords));
         }
 
         [HttpPost]
