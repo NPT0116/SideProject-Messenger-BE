@@ -31,12 +31,28 @@ namespace Application.Features.Friendship.GetFriendList
                     friends = await _friendshipRepository.GetFriendList(request.userId, request.status);
                     break;
             }
-            // var friends =
-            //     request.IsInitiated 
-            //     ? await _friendshipRepository.GetInitiatedFriendList(request.userId, request.status)
-            //     : await _friendshipRepository.GetReceivedFriendList(request.userId, request.status);
             
-            return new GetFriendListQueryResponse(friends);
+            var transformedFriends = friends.Select(friend => new FriendshipDto(
+                friend.Friendship.Id,
+                new UserGetFriendListDto(
+                    friend.Initiator.Id,
+                    friend.Initiator.UserName,
+                    friend.Initiator.FirstName,
+                    friend.Initiator.LastName,
+                    friend.Initiator.ProfilePictureId.ToString() ?? ""
+                ),
+                new UserGetFriendListDto(
+                    friend.Receiver.Id,
+                    friend.Receiver.UserName,
+                    friend.Receiver.FirstName,
+                    friend.Receiver.LastName,
+                    friend.Receiver.ProfilePictureId.ToString() ?? ""
+                ),
+                friend.Friendship.Status,
+                friend.Friendship.CreatedAt
+            )).ToList();
+            
+            return new GetFriendListQueryResponse(transformedFriends);
         }
     }
 }
