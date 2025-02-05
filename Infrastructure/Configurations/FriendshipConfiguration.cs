@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Infrastructure.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
@@ -15,6 +16,22 @@ namespace Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<Friendship> builder)
         {
             builder.HasKey(fr => fr.Id);
+
+            builder.Property(fr => fr.InitiatorId)
+                .IsRequired();
+
+            builder.Property(fr => fr.ReceiverId)
+                .IsRequired();
+
+            builder.HasOne<ApplicationUser>()
+                .WithMany(u => u.FriendshipsInitiated)
+                .HasForeignKey(p => p.InitiatorId)
+                .IsRequired();
+
+            builder.HasOne<ApplicationUser>()
+                .WithMany(u => u.FriendshipsReceived)
+                .HasForeignKey(p => p.ReceiverId)
+                .IsRequired();
         }
     }
 }

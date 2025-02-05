@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Application;
 using FluentValidation.AspNetCore;
 using Infrastructure;
+using Infrastructure.Realtime;
 using Infrastructure.Seed;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -105,14 +106,16 @@ if (builder.Environment.IsEnvironment("Local"))
 
 // Register the background service
 builder.Services.AddHostedService<LastSeenSyncService>();
+
 // Add cors
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("http://127.0.0.1:5500", "http://127.0.0.1:5501")
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials();
     });
 });
 
@@ -127,7 +130,6 @@ using (var scope = app.Services.CreateScope())
     await context.Database.MigrateAsync();
     await DatabaseSeed.SeedData(context);
 }
-
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Local"))
 {
@@ -151,5 +153,7 @@ app.MapControllers();
 
 // Map SignalR hubs
 app.MapHub<ChatHub>("/chathub");
+
+app.MapHub<VideoCallHub>("/videocallhub");
 
 app.Run();

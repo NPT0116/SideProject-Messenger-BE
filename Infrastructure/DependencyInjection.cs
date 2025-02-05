@@ -1,16 +1,19 @@
 ﻿// filepath: /c:/Users/Admin/Desktop/web_messenger/Infrastructure/DependencyInjection.cs
 using System.Text;
 using Application.Data;
+using Application.Services;
 using Domain;
 using Domain.Repositories;
 using Domain.Services;
 using Infrastructure.Identity;
+using Infrastructure.Realtime;
 using Infrastructure.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -81,6 +84,13 @@ namespace Infrastructure
             services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IFileUploadService, FileUploadService >();
             services.AddHostedService<MigrationService>();
+
+            services.AddSignalR();
+            services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+            services.AddSingleton<IHubContextService, HubContextService>();
+            services.AddSingleton<INotificationService, NotificationService>();
+            services.AddSingleton<INotificationStorageService, InMemoryNotificationStorageService>();
+            services.AddSingleton<INotificationConsumer, NotificationConsumer>();
 
             return services;
         }

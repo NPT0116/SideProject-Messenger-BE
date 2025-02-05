@@ -18,11 +18,13 @@ namespace Infrastructure.Configurations
 
             builder.HasMany(u => u.FriendshipsInitiated) // One-to-many relationship 
                 .WithOne()                      // Navigation property in Friendship
-                .HasForeignKey(fri => fri.InitiatorId); // Foreign key in Friendship
+                .HasForeignKey(fri => fri.InitiatorId)
+                .IsRequired(); // Foreign key in Friendship
 
             builder.HasMany(u => u.FriendshipsReceived) // One-to-many relationship
                 .WithOne()          // Navigation property in Friendship
-                .HasForeignKey(f => f.ReceiverId); // Foreign key in Friendship
+                .HasForeignKey(f => f.ReceiverId)
+                .IsRequired(); // Foreign key in Friendship
 
             builder.HasMany(u => u.Participants)
                 .WithOne()
