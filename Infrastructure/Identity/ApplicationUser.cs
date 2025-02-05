@@ -24,7 +24,7 @@ namespace Infrastructure.Identity
         public ICollection<Friendship> FriendshipsInitiated { get; private set; } = new List<Friendship>();
         public ICollection<Friendship> FriendshipsReceived { get; private set; } = new List<Friendship>();
         public IReadOnlyCollection<Participant> Participants { get; private set; }
-
+        public Attachment ProfilePicture { get; private set; }
 
         // [Timestamp]
         // public byte[] RowVersion { get; set; }
