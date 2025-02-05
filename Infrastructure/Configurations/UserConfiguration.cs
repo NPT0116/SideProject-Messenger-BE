@@ -28,6 +28,10 @@ namespace Infrastructure.Configurations
                 .WithOne()
                 .HasForeignKey(f => f.UserId);
 
+            builder.HasOne(u => u.ProfilePicture)
+                .WithOne()
+                .HasForeignKey<ApplicationUser>(u => u.ProfilePictureId);
+
         }
     }
 }

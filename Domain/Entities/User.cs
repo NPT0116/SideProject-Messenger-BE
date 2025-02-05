@@ -33,7 +33,7 @@ namespace Domain.Entities
         public string PasswordHash { get; private set; }
         public DateTime LastSeen { get; set; }
         public bool IsOnline { get; set; }
-        public Guid ProfilePictureId { get; set; }
+        public Guid? ProfilePictureId { get; set; }
         // public Attachment? ProfilePicture { get; private set; }
         // public ICollection<Friendship> FriendshipsInitiated { get; private set; } = new List<Friendship>();
         // public ICollection<Friendship> FriendshipsReceived { get; private set; } = new List<Friendship>();
