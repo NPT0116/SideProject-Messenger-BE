@@ -41,7 +41,7 @@ namespace Application.Users.Queries.GetMeUser
                 UserName = domainUser.UserName,
                 FirstName = domainUser.FirstName,
                 LastName = domainUser.LastName,
-                ProfilePictureId = domainUser.ProfilePictureId
+                ProfilePictureId = domainUser.ProfilePictureId ?? null
             };
 
             return new Response<GetMeUserResponseDto>(responseDto)

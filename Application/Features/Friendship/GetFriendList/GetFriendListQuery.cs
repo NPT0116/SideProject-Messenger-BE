@@ -2,11 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Domain.Dtos.Friendship;
+using Domain.Dtos.Shared;
+using Domain.Entities;
+using Domain.Enums;
 using MediatR;
 
 namespace Application.Features.Friendship.GetFriendList;
+public enum FriendshipFilter
+{
+    Initiated,
+    Received,
+    Both
+}
 
-public record GetFriendListQuery(Guid userId) : IRequest<GetFriendListQueryResponse>;
+public record GetFriendListQuery(
+    Guid userId, 
+    FriendshipStatus? status, 
+    FriendshipFilter filter,
+    int pageNumber,
+    int pageSize) : IRequest<GetFriendListQueryResponse>;
 
-public record GetFriendListQueryResponse(List<Friend> friends);
-public record Friend(Guid id, string Username, string FirstName, string LastName, Guid ProfilePictureId);
+public record UserGetFriendListDto(Guid id, string userName, string firstName, string lastName, string profilePicture);
+public record FriendshipDto(Guid id, UserGetFriendListDto initiator, UserGetFriendListDto receiver, FriendshipStatus status, DateTime createdAt);
+public record GetFriendListQueryResponse(PageResponseDto<FriendshipDto> response);
+

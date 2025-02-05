@@ -28,8 +28,12 @@ namespace Infrastructure.Configurations
 
             builder.HasMany(u => u.Participants)
                 .WithOne()
-                .HasForeignKey(f => f.UserId)
-                .IsRequired();
+                .HasForeignKey(f => f.UserId);
+
+            builder.HasOne(u => u.ProfilePicture)
+                .WithOne()
+                .HasForeignKey<ApplicationUser>(u => u.ProfilePictureId);
+
         }
     }
 }

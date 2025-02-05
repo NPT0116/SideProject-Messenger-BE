@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Domain.Enums;
 using Domain.Exceptions.Friendships;
 using Domain.Exceptions.Users;
 using Domain.Repositories;
@@ -9,7 +10,7 @@ using MediatR;
 
 namespace Application.Features.Friendship.SendFriendshipInvitation
 {
-    public class SendFriendshipInvitationCommandHandler : IRequestHandler<SendFriendshipInvitationCommand, CreateFriendshipResponseDto>
+    public class SendFriendshipInvitationCommandHandler : IRequestHandler<SendFriendshipInvitationCommand, CreateFriendshipListResponseDto>
     {
         private IFriendshipRepository _friendshipRepository;
         private IUserRepository _userRepository;
@@ -20,7 +21,7 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
             _friendshipRepository = friendshipRepository;
             _userRepository = userRepository;
         }
-        public async Task<CreateFriendshipResponseDto> Handle(SendFriendshipInvitationCommand command, CancellationToken cancellationToken)
+        public async Task<CreateFriendshipListResponseDto> Handle(SendFriendshipInvitationCommand command, CancellationToken cancellationToken)
         {
             var initiatorId = command.request.initiatorId;
             var receiverId = command.request.receiverId;
@@ -37,17 +38,16 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
                 throw new UserNotFound(receiverId);
             }
 
-            var friendList = await _friendshipRepository.GetFriendList(initiatorId);
-            var friendListIds = friendList.Select(fr => fr.Id).ToList();
+            var friendship = await _friendshipRepository.GetFriendshipBetweenTwoUsersByIds(initiatorId, receiverId);
 
-            if(friendListIds.Any() && friendListIds.Contains(receiverId))
+            if(friendship != null && friendship.Status == FriendshipStatus.Rejected)
             {
                 throw new HasAlreadyBeenFriend(initiatorId, receiverId);
             }
 
             await _friendshipRepository.CreateFriendship(initiatorId, receiverId);
 
-            return new CreateFriendshipResponseDto(initiatorId, receiverId);
+            return new CreateFriendshipListResponseDto(initiatorId, receiverId);
         }
     }
 }

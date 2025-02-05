@@ -6,7 +6,7 @@ using MediatR;
 
 namespace Application.Features.Friendship.SendFriendshipInvitation;
 
-public record SendFriendshipInvitationCommand(CreateFriendshipDto request) : IRequest<CreateFriendshipResponseDto>;
+public record SendFriendshipInvitationCommand(CreateFriendshipDto request) : IRequest<CreateFriendshipListResponseDto>;
 
 public record CreateFriendshipDto(Guid initiatorId, Guid receiverId);
-public record CreateFriendshipResponseDto(Guid initiatorId, Guid receiverId);
+public record CreateFriendshipListResponseDto(Guid initiatorId, Guid receiverId);
