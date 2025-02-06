@@ -40,7 +40,7 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
 
             var friendship = await _friendshipRepository.GetFriendshipBetweenTwoUsersByIds(initiatorId, receiverId);
 
-            if(friendship != null && friendship.Status == FriendshipStatus.Rejected)
+            if(friendship != null && friendship.Status != FriendshipStatus.Rejected)
             {
                 throw new HasAlreadyBeenFriend(initiatorId, receiverId);
             }
