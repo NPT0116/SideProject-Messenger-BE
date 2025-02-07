@@ -10,7 +10,7 @@ namespace Domain.Repositories
     public interface IUserRepository
     {
         public Task<List<User>> GetUsersAsync();
-        public Task<User> GetUserByIdAsync(Guid id);
+        public Task<User?> GetUserByIdAsync(Guid id);
         public Task<User> GetUserByUsernameAsync(string UserName);
         public Task<User> CreateUserAsync(User user);
         public Task<User> UpdateUserAsync(User user);
