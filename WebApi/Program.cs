@@ -157,3 +157,5 @@ app.MapHub<ChatHub>("/chathub");
 app.MapHub<VideoCallHub>("/videocallhub");
 
 app.Run();
+
+public partial class Program {}

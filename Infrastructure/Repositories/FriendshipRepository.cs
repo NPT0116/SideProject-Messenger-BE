@@ -28,12 +28,13 @@ namespace Infrastructure.Repositories
             _userRepository = userRepository;
         }
 
-        public async Task CreateFriendship(Guid initiatorId, Guid receiverId)
+        public async Task<Guid> CreateFriendship(Guid initiatorId, Guid receiverId)
         {
             var friendshipId = Guid.NewGuid();
             var friendship = new Friendship(friendshipId, initiatorId.ToString(), receiverId.ToString());
             _context.Friendships.Add(friendship);
             await _context.SaveChangesAsync();
+            return friendshipId;
         }
 
         public async Task<PageResponseDto<FriendshipListResponseDto>> GetFriendList(Guid userId, FriendshipStatus? status, int pageNumber, int pageSize)

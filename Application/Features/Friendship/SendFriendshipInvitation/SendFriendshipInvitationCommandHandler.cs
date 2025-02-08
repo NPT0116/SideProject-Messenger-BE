@@ -45,9 +45,9 @@ namespace Application.Features.Friendship.SendFriendshipInvitation
                 throw new HasAlreadyBeenFriend(initiatorId, receiverId);
             }
 
-            await _friendshipRepository.CreateFriendship(initiatorId, receiverId);
+            var friendshipId = await _friendshipRepository.CreateFriendship(initiatorId, receiverId);
 
-            return new CreateFriendshipListResponseDto(initiatorId, receiverId);
+            return new CreateFriendshipListResponseDto(friendshipId, initiatorId, receiverId);
         }
     }
 }

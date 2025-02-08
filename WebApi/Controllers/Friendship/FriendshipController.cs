@@ -64,7 +64,7 @@ namespace WebApi.Controllers.Friendship
         {
             var createFriendshipDto = new CreateFriendshipDto(initiatorId, receiverId);
             var result = await _mediator.Send(new SendFriendshipInvitationCommand(createFriendshipDto));
-            return Created();
+            return Created(nameof(SendFriendshipInvitation), result);
         }
 
         [HttpPatch("reject")]
