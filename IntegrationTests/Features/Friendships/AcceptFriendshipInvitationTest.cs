@@ -27,13 +27,8 @@ namespace IntegrationTests.Features.Friendships
             : base(factory)
         {
             _client = factory.CreateClient();
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestScheme");
             _dbContext = factory._dbContext;
             _friendshipRepository = factory._friendshipRepository;
-
-            var token = _tokenService.CreateUserToken(new User(userId, "pinkwar123", "Nguyen", "Hong Quan", "abc")); // Fake user ID
-
-            _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
         [Fact]
@@ -41,7 +36,7 @@ namespace IntegrationTests.Features.Friendships
         {
             var receiverId = userId;
             var initiatorId = Guid.NewGuid();
-            Console.WriteLine("InitiatorId in test: " + initiatorId);
+            SetupAuthentication(_client, userId);
 
             var seedUsers = new List<ApplicationUser>
             {
@@ -69,6 +64,29 @@ namespace IntegrationTests.Features.Friendships
             friendship.Status.Should().Be(FriendshipStatus.Approved);
             friendship.ReceiverId.Should().Be(receiverId.ToString());
             friendship.InitiatorId.Should().Be(initiatorId.ToString());
+        }
+
+        [Fact]
+        public async Task AcceptFriendship_ShouldReturnUnauthorized_WhenUserIsNotAuthenticated()
+        {
+            ClearAuthentication(_client);
+
+            var friendshipId = Guid.NewGuid();
+            var acceptResponse = await _client.PatchAsync(
+                $"/api/Friendship/approve?friendshipId={friendshipId}", 
+                null);
+            acceptResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.Unauthorized);
+        }
+
+        [Fact]
+        public async Task AcceptFriendship_ShouldReturnNotFound_WhenFriendshipNotFound()
+        {
+            SetupAuthentication(_client, userId);
+            var friendshipId = Guid.NewGuid();
+            var acceptResponse = await _client.PatchAsync(
+                $"/api/Friendship/approve?friendshipId={friendshipId}", 
+                null);
+            acceptResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
         }
     }
 }

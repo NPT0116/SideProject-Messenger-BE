@@ -27,6 +27,11 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             problemDetails.Title = baseException.Message;
             httpContext.Response.StatusCode = (int)baseException.StatusCode;
         }
+        else if(exception is UnauthorizedAccessException)
+        {
+            problemDetails.Title = "Unauthorized access.";
+            httpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        }
         else
         {
             problemDetails.Title = "An unexpected error occurred.";
