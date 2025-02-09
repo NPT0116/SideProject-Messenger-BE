@@ -88,5 +88,35 @@ namespace IntegrationTests.Features.Friendships
                 null);
             acceptResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
         }
+
+        [Fact]
+        public async Task AcceptFriendship_ShouldReturnFriendshipNotMatch_WhenUserIsNotReceiver()
+        {
+            var initiatorId = userId;
+            var receiverId = Guid.NewGuid();
+            SetupAuthentication(_client, userId);
+
+            var seedUsers = new List<ApplicationUser>
+            {
+                new ApplicationUser(initiatorId, "Nguyen", "Hong Quan"),
+                new ApplicationUser(receiverId, "Nguyen", "Phuc Thanh")
+            };
+
+            await _dbContext.Users.AddRangeAsync(seedUsers);
+            await _dbContext.SaveChangesAsync();
+
+            var createResponse = await _client.PostAsync(
+                $"/api/Friendship?initiatorId={initiatorId}&receiverId={receiverId}", 
+               null);
+            createResponse.EnsureSuccessStatusCode();
+
+            var result = await createResponse.Content.ReadFromJsonAsync<CreateFriendshipListResponseDto>();
+            var friendshipId = result.friendshipId;
+            var acceptResponse = await _client.PatchAsync(
+                $"/api/Friendship/approve?friendshipId={friendshipId}", 
+                null);
+            acceptResponse.StatusCode.Should().Be(System.Net.HttpStatusCode.Conflict);
+
+        }
     }
 }
