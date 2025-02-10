@@ -13,7 +13,7 @@ namespace IntegrationTests.Shared
     public abstract class BaseIntegrationTest : IClassFixture<CustomWebApplicationFactory>
     {
         private readonly IServiceScope _scope;
-        private readonly ISender _sender;
+        protected readonly ISender _sender;
         protected readonly ITokenService _tokenService;
         protected BaseIntegrationTest(CustomWebApplicationFactory factory)
         {
